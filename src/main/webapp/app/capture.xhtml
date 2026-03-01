@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html">
+<h:head>
+    <title>Capture</title>
+</h:head>
+
+<h:body>
+    <h1>Capture</h1>
+
+    <h:form>
+        <h:outputLabel for="steps" value="Steps:"/>
+        <h:inputText id="steps" value="#{captureBean.steps}" />
+        <br/><br/>
+
+        <h:commandButton value="Speichern (Dummy)" action="#{captureBean.save}" />
+    </h:form>
+
+    <p><h:outputText value="#{captureBean.message}" /></p>
+
+    <p><h:link value="Zurück" outcome="/app/home"/></p>
+</h:body>
+</html>
