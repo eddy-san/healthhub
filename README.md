@@ -1,5 +1,7 @@
 # HealthHub
 
+![Maven Build](https://github.com/eddy-san/healthhub/actions/workflows/maven.yml/badge.svg)
+
 HealthHub is a Jakarta EE 11 web application with an admin backend and
 frontend for collecting and managing health / wearable data (e.g. Garmin
 Connect).
