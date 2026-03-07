@@ -3,70 +3,41 @@ setlocal enabledelayedexpansion
 
 echo [STEP 0] Load .env
 
-for /f "tokens=1,* delims==" %%A in (.env) do (
+for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
     if "%%A"=="MSSQL_SA_PASSWORD" set MSSQL_SA_PASSWORD=%%B
-    if "%%A"=="APP_LOGIN_USER" set APP_LOGIN_USER=%%B
-    if "%%A"=="APP_LOGIN_PASSWORD" set APP_LOGIN_PASSWORD=%%B
 )
-
-set JAVA_TOOL_OPTIONS=-Ddb.password=%MSSQL_SA_PASSWORD%
 
 set WILDFLY_HOME=..\..\wildfly-39.0.1.Final\wildfly-39.0.1.Final
 set WILDFLY_BIN=%WILDFLY_HOME%\bin
 set WILDFLY_DEPLOY=%WILDFLY_HOME%\standalone\deployments
 set WAR=target\healthhub-1.0-SNAPSHOT.war
 
-echo [STEP 1] Start SQL Server container
-docker compose up -d
-if errorlevel 1 goto fail
-
-echo [STEP 1.1] Waiting for SQL Server
-
-set SQL_READY=false
-
-for /L %%I in (1,1,30) do (
-    docker exec healthhub-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "%MSSQL_SA_PASSWORD%" -C -Q "SELECT 1" >nul 2>&1
-
-    if not errorlevel 1 (
-        set SQL_READY=true
-        echo SQL Server ready.
-        goto sqlready
-    )
-
-    echo Waiting for SQL Server... (%%I/30)
-    timeout /t 2 >nul
+if not exist "%WILDFLY_HOME%" (
+    echo ERROR: WildFly home not found: %WILDFLY_HOME%
+    goto fail
 )
 
-:sqlready
-
-if "%SQL_READY%"=="false" (
-    echo ERROR: SQL Server did not start.
-    goto end
+if "%MSSQL_SA_PASSWORD%"=="" (
+    echo ERROR: MSSQL_SA_PASSWORD not found in .env
+    goto fail
 )
 
-echo [STEP 2] Run Liquibase
-call mvnw.cmd -Pupdate-schema clean process-resources
+echo [STEP 1] Build WAR
+call .\mvnw.cmd clean package
 if errorlevel 1 goto fail
 
-echo [STEP 3] Build WAR
-call mvnw.cmd clean package
-if errorlevel 1 goto fail
-
-echo [STEP 4] Check WildFly
+echo [STEP 2] Check WildFly
 
 curl -s http://localhost:8080/ >nul 2>&1
-
 if not errorlevel 1 (
     echo WildFly already running.
     goto wildflyready
 )
 
 echo Starting WildFly...
-
-start "WildFly" /D "%WILDFLY_BIN%" standalone.bat
+start "WildFly" /D "%WILDFLY_BIN%" cmd /c "set MSSQL_SA_PASSWORD=%MSSQL_SA_PASSWORD% && standalone.bat"
 
 for /L %%I in (1,1,60) do (
-
     curl -s http://localhost:8080/ >nul 2>&1
 
     if not errorlevel 1 (
@@ -79,12 +50,19 @@ for /L %%I in (1,1,60) do (
 )
 
 echo ERROR: WildFly did not start.
-goto end
+goto fail
 
 :wildflyready
 
-echo [STEP 5] Deploy WAR
+echo [STEP 3] Clean old deployment markers
+del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war" 2>nul
+del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.deployed" 2>nul
+del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.failed" 2>nul
+del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.isdeploying" 2>nul
+del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.undeployed" 2>nul
+del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.dodeploy" 2>nul
 
+echo [STEP 4] Deploy WAR
 copy /Y "%WAR%" "%WILDFLY_DEPLOY%" >nul
 type nul > "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.dodeploy"
 
@@ -94,13 +72,13 @@ echo HealthHub deployed successfully
 echo http://localhost:8080/healthhub-1.0-SNAPSHOT/
 echo ====================================
 echo.
-
 goto end
 
 :fail
 echo.
 echo ERROR: Deployment failed.
 echo.
+exit /b 1
 
 :end
 pause

@@ -30,11 +30,7 @@ public class LoginBean {
         return "/app/home.xhtml?faces-redirect=true";
     }
 
-    public String logout() {
-        authenticationService.logout();
-        FacesContext.getCurrentInstance().getExternalContext().invalidateSession();
-        return "/index.xhtml?faces-redirect=true";
-    }
+
 
     public String getUsername() {
         return username;

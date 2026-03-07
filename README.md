@@ -1,156 +1,234 @@
 # HealthHub
 
-HealthHub is a Jakarta EE web application designed as a clean, modular
-architecture for managing clinical data workflows.\
-The project demonstrates a modern enterprise stack using **WildFly**,
-**Hibernate/JPA**, **Liquibase**, and **SQL Server** running in
-**Docker**.
+![Java](https://img.shields.io/badge/Java-21-blue)
+![JakartaEE](https://img.shields.io/badge/JakartaEE-WildFly-orange)
+![Build](https://img.shields.io/badge/build-maven-success)
+![Database](https://img.shields.io/badge/database-SQL%20Server-red)
+![License](https://img.shields.io/badge/license-TBD-lightgrey)
+
+HealthHub is a Jakarta EE backend platform for managing clinical study
+data, patient information, and secure authentication.
+
+The system is designed with a clean enterprise architecture emphasizing
+reproducibility, security and deterministic deployments.
+
+Technologies:
+
+-   Java 21
+-   Jakarta EE
+-   WildFly
+-   JPA / Hibernate
+-   Liquibase
+-   SQL Server
+-   Docker
+-   Maven
 
 ------------------------------------------------------------------------
 
-## Architecture Overview
+# Architecture
 
-HealthHub follows a layered architecture:
-
-Web Layer - JSF / Web Beans - Security (AuthFilter, LoginBean)
-
-Application Layer - AuthenticationService
-
-Domain Layer - User - Role - Patient
-
-Persistence Layer - UserRepository - RoleRepository - PatientRepository
-
-Infrastructure - WildFly - Liquibase migrations - SQL Server (Docker)
+Controller / REST\
+↓\
+Service Layer\
+↓\
+Repository Layer (JPA)\
+↓\
+Database (SQL Server)
 
 ------------------------------------------------------------------------
 
-## Technology Stack
+# Security
 
-Backend: Jakarta EE 11\
-Application Server: WildFly 39\
-ORM: Hibernate / JPA\
-Database: Microsoft SQL Server\
-Migrations: Liquibase\
-Build Tool: Maven\
-Containerization: Docker\
-IDE: IntelliJ IDEA
+Authentication uses **PBKDF2 password hashing**.
 
-------------------------------------------------------------------------
+Format:
 
-## Database Model
-
-The authentication system uses a role-based access control model.
-
-app_user\
-→ app_user_role\
-→ app_role
+pbkdf2$iterations$salt\$hash
 
 Example:
 
-username \| role\
-admin \| ADMIN
+pbkdf2$120000$e+xOxYr0+zrcmMndQnU9pQ==\$mM1f9Xn4SLowMQabjWhbJNG3kTDz/mFS+U3rDrthLtA=
+
+Features:
+
+-   salted hashing
+-   configurable iterations
+-   no plaintext password storage
 
 ------------------------------------------------------------------------
 
-## Authentication Flow
+# Database Management
 
-Login Page\
-↓\
-LoginBean\
-↓\
-AuthenticationService\
-↓\
-UserRepository\
-↓\
-SQL Server\
-↓\
-PasswordHasher (PBKDF2)\
-↓\
-UserSession
+Database schema is managed with **Liquibase**.
 
-Passwords are stored using:
+Migration example:
 
-PBKDF2\
-120000 iterations\
-salt + hash
+010_tables.sql\
+015_seed_roles.sql\
+020_procs.sql\
+025_seed_admin.sql
 
-Example stored hash:
+Advantages:
 
-pbkdf2$120000$...
+-   versioned schema
+-   reproducible migrations
+-   audit‑friendly database changes
 
 ------------------------------------------------------------------------
 
-## Running the Project
+# Development Workflow
 
-### 1. Start SQL Server
+Two scripts simplify development.
 
-docker compose up -d
+## Reset environment
 
-### 2. Run Liquibase migrations
+reset.cmd
 
-./mvnw -Pupdate-schema process-resources
+This will:
 
-### 3. Build application
-
-./mvnw clean package
-
-### 4. Start WildFly
-
-standalone.bat
-
-Application:
-
-http://localhost:8080/healthhub
+1.  reset Docker volumes
+2.  start SQL Server
+3.  wait until DB is ready
+4.  apply Liquibase migrations
 
 ------------------------------------------------------------------------
 
-## Default Admin User
+## Deploy application
 
-Created via Liquibase seed migration.
+deploy.cmd
+
+Steps:
+
+-   Maven build
+-   start WildFly if needed
+-   deploy WAR
+
+The deploy script can be executed multiple times safely during
+development.
+
+------------------------------------------------------------------------
+
+# Default Access
+
+Admin user is seeded via Liquibase.
 
 username: admin\
-password: admin123!\
-role: ADMIN
+roles: ADMIN
+
+User roles are stored in:
+
+app_role
+
+User assignments:
+
+app_user_role
 
 ------------------------------------------------------------------------
 
-## Project Structure
+# Project Structure
 
-src/main/java/de/healthhub - api - auth - bootstrap - domain - auth -
-patient - persistence - web - admin - app - security
+src/main/java
 
-------------------------------------------------------------------------
+-   auth
+-   bootstrap
+-   domain
+-   persistence
+-   service
+-   tools
 
-## Development Notes
-
-Recommended workflow:
-
-1.  Modify database schema via Liquibase
-2.  Update JPA entities
-3.  Implement logic in services
-4.  Expose functionality via web beans / API
+src/main/resources/db/changelog
 
 ------------------------------------------------------------------------
 
-## Future Features
+# Roadmap / Open Tasks
 
-Planned extensions:
+## Health Endpoint
 
--   Patient onboarding workflow
--   Clinical event capture
--   Export pipelines
--   Audit logging
--   REST API for mobile applications
+GET /api/health
+
+Used for:
+
+-   monitoring
+-   load balancers
+-   Kubernetes readiness checks
+
+Example response:
+
+{ "status": "UP" }
 
 ------------------------------------------------------------------------
 
-## License
+## Audit Logging
 
-MIT License
+Suggested schema:
+
+audit_log
+
+id\
+timestamp\
+user_id\
+action\
+entity\
+entity_id\
+ip_address
+
+Example events:
+
+LOGIN_SUCCESS\
+LOGIN_FAILED\
+PATIENT_EXPORT\
+PATIENT_UPDATE
 
 ------------------------------------------------------------------------
 
-## Author
+## Login Rate Limiting
 
-Eduard Roth\
-Computer Scientist \| BI \| Health Data
+Protection against brute force attacks.
+
+Example:
+
+max 5 login attempts per minute
+
+------------------------------------------------------------------------
+
+## Session Timeout
+
+Recommended timeout:
+
+30 minutes idle
+
+------------------------------------------------------------------------
+
+## CI/CD Pipeline
+
+Planned GitHub Action workflow:
+
+push → build → test → package → deploy
+
+------------------------------------------------------------------------
+
+# Philosophy
+
+HealthHub focuses on explicit enterprise architecture.
+
+Key principles:
+
+-   minimal framework magic
+-   deterministic builds
+-   database migrations via Liquibase
+-   strong authentication
+
+Stack:
+
+Java\
+Jakarta EE\
+WildFly\
+Liquibase\
+SQL Server\
+Docker
+
+------------------------------------------------------------------------
+
+# License
+
+TBD
