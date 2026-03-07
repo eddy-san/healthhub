@@ -3,20 +3,30 @@
       xmlns:h="jakarta.faces.html">
 <h:head>
     <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </h:head>
 
-<h:body>
-    <h1>Admin Dashboard</h1>
+<h:body styleClass="min-h-screen bg-slate-950 text-slate-100">
+    <div class="mx-auto max-w-4xl px-6 py-10">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+                <p class="mt-2 text-slate-400">Angemeldet als #{userSession.username}</p>
+            </div>
+            <h:form>
+                <h:commandButton value="Logout"
+                                 action="#{logoutBean.logout}"
+                                 styleClass="rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold hover:bg-slate-700"/>
+            </h:form>
+        </div>
 
-    <p>Angemeldet als: <strong><h:outputText value="#{userSession.username}" /></strong></p>
-    <p>Wenn du das siehst: JSF rendert hier sauber ✅</p>
-
-    <p>
-        <h:link value="Frontend Home" outcome="/app/home"/>
-    </p>
-
-    <p>
-        <h:commandLink value="Logout" action="#{userSession.logout}" />
-    </p>
+        <div class="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <p class="text-slate-300">Admin-Rechte aktiv: #{userSession.admin}</p>
+            <div class="mt-4 flex gap-4 text-cyan-300">
+                <h:link value="Frontend Home" outcome="/app/home"/>
+                <h:link value="Users" outcome="/admin/users"/>
+            </div>
+        </div>
+    </div>
 </h:body>
 </html>

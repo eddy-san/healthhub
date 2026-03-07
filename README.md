@@ -6,147 +6,97 @@
 ![SQL_Server](https://img.shields.io/badge/SQL_Server-2022-darkred)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-HealthHub is a Jakarta EE 11 web application with an admin backend and
-frontend for collecting and managing health / wearable data (e.g. Garmin
-Connect).
+HealthHub is a Jakarta EE 11 web application with JSF frontend, JPA/Hibernate persistence,
+role-based login and SQL Server schema management via Liquibase.
 
-The project includes automated database provisioning and schema
-migration using Docker + Microsoft SQL Server + Liquibase.
+## Auth and domain model
 
-------------------------------------------------------------------------
+The project now uses a clean separation between technical identity and domain model:
 
-## 🚀 Tech Stack
+- `User` → login account
+- `RoleEntity` / `RoleName` → permissions (`ADMIN`, `PATIENT`, `EXPORT`)
+- `Patient` → domain entity with `OneToOne` link to `User`
+- `LoggedInUser` → lightweight session model
+- `UserSession` → CDI session bean
 
--   Jakarta EE 11
--   JSF (Server Faces)
--   CDI (Contexts and Dependency Injection)
--   JAX-RS (REST API)
--   Maven (Wrapper included)
--   WildFly 39
--   Java 21
--   Microsoft SQL Server 2022 (Docker)
--   Liquibase 4.27 (Schema Migration)
+This avoids JPA inheritance for user types and keeps authentication, authorization and
+patient context separate.
 
-------------------------------------------------------------------------
+## Project structure
 
-## 🏗 Project Structure
+```text
+src/main/java/de/healthhub
+├── auth
+├── bootstrap
+├── domain
+│   ├── auth
+│   └── patient
+├── persistence
+└── web
+    ├── app
+    └── security
+```
 
-    src/main/java/de/healthhub
-    │
-    ├── api        → REST endpoints
-    ├── model      → Domain / JPA entities
-    ├── service    → Business logic
-    └── web        → JSF backing beans
-        ├── admin
-        └── app
+## Database strategy
 
-    src/main/resources
-    └── db
-        └── changelog
-            ├── create-db
-            └── schema
+- Database creation via Liquibase profile `update-schema`
+- DDL in `src/main/resources/db/changelog/schema/010_tables.sql`
+- role seed data in `015_seed_roles.sql`
+- stored procedures in `020_procs.sql`
+- Hibernate schema generation disabled in `persistence.xml`
 
-    src/main/webapp
-    │
-    ├── admin      → Admin views
-    ├── app        → Frontend views
-    ├── index.xhtml
-    └── WEB-INF
-        └── web.xml
+## Bootstrap admin
 
-------------------------------------------------------------------------
+On application startup, `AdminBootstrap` ensures the standard roles exist and creates an admin
+account if the configured username does not exist yet.
 
-## 🐳 Local Development (Full Setup)
+Environment variables:
+
+```text
+APP_BOOTSTRAP_ADMIN_USER=admin
+APP_BOOTSTRAP_ADMIN_PASSWORD=admin123!
+APP_BOOTSTRAP_ADMIN_EMAIL=admin@healthhub.local
+```
+
+## Persistence configuration
+
+`persistence.xml` expects a WildFly datasource:
+
+```text
+java:/jdbc/HealthHubDS
+```
+
+Hibernate is used only for ORM access. DDL is managed externally.
+
+## Local development
 
 Start database:
 
-    docker compose up -d
+```bash
+docker compose up -d
+```
 
-Run database migrations:
+Run schema migration:
 
-    $env:JAVA_TOOL_OPTIONS="-Ddb.password=$env:MSSQL_SA_PASSWORD"
-    ./mvnw -Pupdate-schema clean process-resources
+```bash
+export JAVA_TOOL_OPTIONS="-Ddb.password=$MSSQL_SA_PASSWORD"
+./mvnw -Pupdate-schema clean process-resources
+```
 
 Build WAR:
 
-    ./mvnw clean package
+```bash
+./mvnw clean package
+```
 
-------------------------------------------------------------------------
+## Current state
 
-## 🚀 One-Click Deploy (Recommended)
+Included in this version:
 
-Use the provided script:
-
-Linux / Git Bash:
-
-    ./deploy.sh
-
-PowerShell:
-
-    bash .\deploy.sh
-
-The script:
-
-1.  Starts Docker (SQL Server)
-2.  Runs Liquibase migrations
-3.  Builds the WAR
-4.  Deploys to WildFly
-5.  Triggers auto-deploy
-
-------------------------------------------------------------------------
-
-## 🌍 Access
-
-After deployment:
-
-    http://localhost:8080/healthhub-1.0-SNAPSHOT/
-
-Admin Dashboard:
-
-    /admin/dashboard.xhtml
-
-Frontend:
-
-    /app/home.xhtml
-
-------------------------------------------------------------------------
-
-## 📦 Architecture
-
-HealthHub follows a classic layered architecture:
-
--   Model → domain objects / entities
--   View → JSF pages
--   Controller → JSF backing beans
--   Service Layer → business logic
--   Database → Versioned via Liquibase
--   Infrastructure → Docker + SQL Server
-
-Database changes are fully version-controlled and reproducible.
-
-------------------------------------------------------------------------
-
-## 🔐 Database Strategy
-
--   Database created automatically via Liquibase
--   Tables and indexes managed in `010_tables.sql`
--   Stored procedures managed in `020_procs.sql`
--   Execution history stored in `DATABASECHANGELOG`
-
-This ensures deterministic deployments across environments.
-
-------------------------------------------------------------------------
-
-## 🔜 Roadmap
-
--   [ ] JPA integration layer
--   [ ] Role-based security (Admin/User)
--   [ ] REST ingestion endpoint for wearable APIs
--   [ ] CI pipeline including DB migration stage
--   [ ] Production Docker setup
-
-------------------------------------------------------------------------
-
-## 👤 Author
-
-Eduard Roth
+- JPA entities for `User`, `RoleEntity`, `Patient`
+- repositories without native SQL
+- `AuthenticationService`
+- `PasswordHasher` with PBKDF2
+- CDI session-based login context
+- admin bootstrap user
+- JSF login, app home and admin dashboard

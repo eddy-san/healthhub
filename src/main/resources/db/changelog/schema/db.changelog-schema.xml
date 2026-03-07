@@ -9,10 +9,16 @@
         <sqlFile path="010_tables.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="015-seed-roles" author="healthhub">
+        <sqlFile path="015_seed_roles.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
     <changeSet id="020-procs" author="healthhub">
         <sqlFile path="020_procs.sql" splitStatements="false" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <changeSet id="025-seed-admin" author="healthhub">
+        <sqlFile path="025_seed_admin.sql" splitStatements="false" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>
-
-

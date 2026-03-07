@@ -1,8 +1,10 @@
 package de.healthhub.web.security;
 
+import de.healthhub.auth.AuthenticationService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 @Named
@@ -12,41 +14,24 @@ public class LoginBean {
     private String username;
     private String password;
 
-    public String login() {
-        String expectedUser = System.getenv("APP_LOGIN_USER");
-        String expectedPassword = System.getenv("APP_LOGIN_PASSWORD");
+    @Inject
+    private AuthenticationService authenticationService;
 
-        if (expectedUser == null || expectedPassword == null) {
+    public String login() {
+        boolean success = authenticationService.login(username, password);
+        if (!success) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                            "Configuration error",
-                            "APP_LOGIN_USER or APP_LOGIN_PASSWORD not set"));
+                            "Login failed",
+                            "Invalid username or password"));
             return null;
         }
 
-        if (expectedUser.equals(username) && expectedPassword.equals(password)) {
-            FacesContext.getCurrentInstance()
-                    .getExternalContext()
-                    .getSessionMap()
-                    .put("loggedIn", true);
-
-            FacesContext.getCurrentInstance()
-                    .getExternalContext()
-                    .getSessionMap()
-                    .put("username", username);
-
-            return "/app/home.xhtml?faces-redirect=true";
-        }
-
-        FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                        "Login failed",
-                        "Invalid username or password"));
-
-        return null;
+        return "/app/home.xhtml?faces-redirect=true";
     }
 
     public String logout() {
+        authenticationService.logout();
         FacesContext.getCurrentInstance().getExternalContext().invalidateSession();
         return "/index.xhtml?faces-redirect=true";
     }
