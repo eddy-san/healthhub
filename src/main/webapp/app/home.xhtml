@@ -2,20 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html">
 <h:head>
-    <title>Frontend Home</title>
+    <title>HealthHub Home</title>
 </h:head>
-
 <h:body>
-    <h1>Frontend Home</h1>
+    <h2>Welcome</h2>
+    <p>You are logged in.</p>
 
-    <p>Wenn du das siehst: Frontend (JSF) läuft ✅</p>
-
-    <p>
-        <h:link value="Zurück" outcome="/index"/>
-    </p>
-
-    <p>
-        <h:link value="Zur Capture-Seite" outcome="/app/capture"/>
-    </p>
+    <h:form>
+        <h:commandButton value="Logout" action="#{loginBean.logout}" />
+    </h:form>
 </h:body>
 </html>

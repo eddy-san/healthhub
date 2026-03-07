@@ -8,10 +8,15 @@
 <h:body>
     <h1>Admin Dashboard</h1>
 
+    <p>Angemeldet als: <strong><h:outputText value="#{userSession.username}" /></strong></p>
     <p>Wenn du das siehst: JSF rendert hier sauber ✅</p>
 
     <p>
-        <h:link value="Zurück" outcome="/index"/>
+        <h:link value="Frontend Home" outcome="/app/home"/>
+    </p>
+
+    <p>
+        <h:commandLink value="Logout" action="#{userSession.logout}" />
     </p>
 </h:body>
 </html>

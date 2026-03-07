@@ -15,6 +15,16 @@
         <url-pattern>*.xhtml</url-pattern>
     </servlet-mapping>
 
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>de.healthhub.web.security.AuthFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </filter-mapping>
+
     <welcome-file-list>
         <welcome-file>index.xhtml</welcome-file>
     </welcome-file-list>
