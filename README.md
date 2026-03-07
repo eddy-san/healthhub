@@ -1,102 +1,156 @@
 # HealthHub
 
-![Build](https://github.com/eddy-san/healthhub/actions/workflows/maven.yml/badge.svg)
-![Java](https://img.shields.io/badge/Java-21-blue) ![JakartaEE](https://img.shields.io/badge/Jakarta_EE-11-red)
-![Liquibase](https://img.shields.io/badge/Liquibase-4.27-orange)
-![SQL_Server](https://img.shields.io/badge/SQL_Server-2022-darkred)
-![License](https://img.shields.io/badge/License-MIT-green)
+HealthHub is a Jakarta EE web application designed as a clean, modular
+architecture for managing clinical data workflows.\
+The project demonstrates a modern enterprise stack using **WildFly**,
+**Hibernate/JPA**, **Liquibase**, and **SQL Server** running in
+**Docker**.
 
-HealthHub is a Jakarta EE 11 web application with JSF frontend, JPA/Hibernate persistence,
-role-based login and SQL Server schema management via Liquibase.
+------------------------------------------------------------------------
 
-## Auth and domain model
+## Architecture Overview
 
-The project now uses a clean separation between technical identity and domain model:
+HealthHub follows a layered architecture:
 
-- `User` → login account
-- `RoleEntity` / `RoleName` → permissions (`ADMIN`, `PATIENT`, `EXPORT`)
-- `Patient` → domain entity with `OneToOne` link to `User`
-- `LoggedInUser` → lightweight session model
-- `UserSession` → CDI session bean
+Web Layer - JSF / Web Beans - Security (AuthFilter, LoginBean)
 
-This avoids JPA inheritance for user types and keeps authentication, authorization and
-patient context separate.
+Application Layer - AuthenticationService
 
-## Project structure
+Domain Layer - User - Role - Patient
 
-```text
-src/main/java/de/healthhub
-├── auth
-├── bootstrap
-├── domain
-│   ├── auth
-│   └── patient
-├── persistence
-└── web
-    ├── app
-    └── security
-```
+Persistence Layer - UserRepository - RoleRepository - PatientRepository
 
-## Database strategy
+Infrastructure - WildFly - Liquibase migrations - SQL Server (Docker)
 
-- Database creation via Liquibase profile `update-schema`
-- DDL in `src/main/resources/db/changelog/schema/010_tables.sql`
-- role seed data in `015_seed_roles.sql`
-- stored procedures in `020_procs.sql`
-- Hibernate schema generation disabled in `persistence.xml`
+------------------------------------------------------------------------
 
-## Bootstrap admin
+## Technology Stack
 
-On application startup, `AdminBootstrap` ensures the standard roles exist and creates an admin
-account if the configured username does not exist yet.
+Backend: Jakarta EE 11\
+Application Server: WildFly 39\
+ORM: Hibernate / JPA\
+Database: Microsoft SQL Server\
+Migrations: Liquibase\
+Build Tool: Maven\
+Containerization: Docker\
+IDE: IntelliJ IDEA
 
-Environment variables:
+------------------------------------------------------------------------
 
-```text
-APP_BOOTSTRAP_ADMIN_USER=admin
-APP_BOOTSTRAP_ADMIN_PASSWORD=admin123!
-APP_BOOTSTRAP_ADMIN_EMAIL=admin@healthhub.local
-```
+## Database Model
 
-## Persistence configuration
+The authentication system uses a role-based access control model.
 
-`persistence.xml` expects a WildFly datasource:
+app_user\
+→ app_user_role\
+→ app_role
 
-```text
-java:/jdbc/HealthHubDS
-```
+Example:
 
-Hibernate is used only for ORM access. DDL is managed externally.
+username \| role\
+admin \| ADMIN
 
-## Local development
+------------------------------------------------------------------------
 
-Start database:
+## Authentication Flow
 
-```bash
+Login Page\
+↓\
+LoginBean\
+↓\
+AuthenticationService\
+↓\
+UserRepository\
+↓\
+SQL Server\
+↓\
+PasswordHasher (PBKDF2)\
+↓\
+UserSession
+
+Passwords are stored using:
+
+PBKDF2\
+120000 iterations\
+salt + hash
+
+Example stored hash:
+
+pbkdf2$120000$...
+
+------------------------------------------------------------------------
+
+## Running the Project
+
+### 1. Start SQL Server
+
 docker compose up -d
-```
 
-Run schema migration:
+### 2. Run Liquibase migrations
 
-```bash
-export JAVA_TOOL_OPTIONS="-Ddb.password=$MSSQL_SA_PASSWORD"
-./mvnw -Pupdate-schema clean process-resources
-```
+./mvnw -Pupdate-schema process-resources
 
-Build WAR:
+### 3. Build application
 
-```bash
 ./mvnw clean package
-```
 
-## Current state
+### 4. Start WildFly
 
-Included in this version:
+standalone.bat
 
-- JPA entities for `User`, `RoleEntity`, `Patient`
-- repositories without native SQL
-- `AuthenticationService`
-- `PasswordHasher` with PBKDF2
-- CDI session-based login context
-- admin bootstrap user
-- JSF login, app home and admin dashboard
+Application:
+
+http://localhost:8080/healthhub
+
+------------------------------------------------------------------------
+
+## Default Admin User
+
+Created via Liquibase seed migration.
+
+username: admin\
+password: admin123!\
+role: ADMIN
+
+------------------------------------------------------------------------
+
+## Project Structure
+
+src/main/java/de/healthhub - api - auth - bootstrap - domain - auth -
+patient - persistence - web - admin - app - security
+
+------------------------------------------------------------------------
+
+## Development Notes
+
+Recommended workflow:
+
+1.  Modify database schema via Liquibase
+2.  Update JPA entities
+3.  Implement logic in services
+4.  Expose functionality via web beans / API
+
+------------------------------------------------------------------------
+
+## Future Features
+
+Planned extensions:
+
+-   Patient onboarding workflow
+-   Clinical event capture
+-   Export pipelines
+-   Audit logging
+-   REST API for mobile applications
+
+------------------------------------------------------------------------
+
+## License
+
+MIT License
+
+------------------------------------------------------------------------
+
+## Author
+
+Eduard Roth\
+Computer Scientist \| BI \| Health Data
