@@ -1,234 +1,172 @@
 # HealthHub
 
 ![Java](https://img.shields.io/badge/Java-21-blue)
-![JakartaEE](https://img.shields.io/badge/JakartaEE-WildFly-orange)
+![Jakarta EE](https://img.shields.io/badge/JakartaEE-WildFly-orange)
 ![Build](https://img.shields.io/badge/build-maven-success)
 ![Database](https://img.shields.io/badge/database-SQL%20Server-red)
-![License](https://img.shields.io/badge/license-TBD-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-HealthHub is a Jakarta EE backend platform for managing clinical study
-data, patient information, and secure authentication.
+HealthHub is a Jakarta EE backend platform for managing clinical study data, patient information, and secure authentication.
 
-The system is designed with a clean enterprise architecture emphasizing
-reproducibility, security and deterministic deployments.
+The stack is intentionally explicit and enterprise-oriented:
 
-Technologies:
+- WildFly 39
+- Jakarta EE 11
+- JPA / Hibernate
+- Liquibase
+- SQL Server 2022
+- Docker / Docker Compose
+- Maven Wrapper
 
--   Java 21
--   Jakarta EE
--   WildFly
--   JPA / Hibernate
--   Liquibase
--   SQL Server
--   Docker
--   Maven
+## Architecture
 
-------------------------------------------------------------------------
+```text
+Browser
+  ↓
+JSF / Web Layer
+  ↓
+AuthenticationService / Application Services
+  ↓
+Repositories (JPA)
+  ↓
+SQL Server
+```
 
-# Architecture
+## Security
 
-Controller / REST\
-↓\
-Service Layer\
-↓\
-Repository Layer (JPA)\
-↓\
-Database (SQL Server)
+Authentication uses PBKDF2 password hashing.
 
-------------------------------------------------------------------------
+```text
+pbkdf2$iterations$salt$hash
+```
 
-# Security
+Passwords are never stored in plaintext.
 
-Authentication uses **PBKDF2 password hashing**.
+## Database management
 
-Format:
+Schema management is handled by Liquibase.
 
-pbkdf2$iterations$salt\$hash
+Migration sequence:
 
-Example:
-
-pbkdf2$120000$e+xOxYr0+zrcmMndQnU9pQ==\$mM1f9Xn4SLowMQabjWhbJNG3kTDz/mFS+U3rDrthLtA=
-
-Features:
-
--   salted hashing
--   configurable iterations
--   no plaintext password storage
-
-------------------------------------------------------------------------
-
-# Database Management
-
-Database schema is managed with **Liquibase**.
-
-Migration example:
-
-010_tables.sql\
-015_seed_roles.sql\
-020_procs.sql\
+```text
+010_tables.sql
+015_seed_roles.sql
+020_procs.sql
 025_seed_admin.sql
+```
 
-Advantages:
+This keeps database changes reproducible and auditable.
 
--   versioned schema
--   reproducible migrations
--   audit‑friendly database changes
+## Container setup
 
-------------------------------------------------------------------------
+All container-related files now live under the `docker/` directory.
 
-# Development Workflow
+```text
+docker/
+ ├─ docker-compose.yml
+ └─ wildfly/
+     ├─ Dockerfile
+     ├─ configure.cli
+     └─ modules/com/microsoft/sqlserver/main/module.xml
+```
 
-Two scripts simplify development.
+The project runs with two containers:
 
-## Reset environment
+- `healthhub-sql` → SQL Server
+- `healthhub-app` → WildFly + deployed WAR + JDBC driver + datasource
 
+Inside Docker, the datasource connects to SQL Server via the Compose service name:
+
+```text
+healthhub-sql:1433
+```
+
+## Local development workflow
+
+### 1. Reset database
+
+```bat
 reset.cmd
+```
 
 This will:
 
-1.  reset Docker volumes
-2.  start SQL Server
-3.  wait until DB is ready
-4.  apply Liquibase migrations
+1. stop and remove containers and volumes
+2. start SQL Server
+3. wait for readiness
+4. execute Liquibase migrations
 
-------------------------------------------------------------------------
+Internally it uses:
 
-## Deploy application
+```bat
+docker compose --env-file .env -f docker\docker-compose.yml down -v --remove-orphans
+docker compose --env-file .env -f docker\docker-compose.yml up -d healthhub-sql
+```
 
+### 2. Build and deploy app
+
+```bat
 deploy.cmd
+```
 
-Steps:
+This will:
 
--   Maven build
--   start WildFly if needed
--   deploy WAR
+1. build the WAR with Maven Wrapper
+2. copy the SQL Server JDBC driver from the local Maven cache into the Docker build context
+3. build the WildFly container image
+4. start / update the application container
 
-The deploy script can be executed multiple times safely during
-development.
+Application URL:
 
-------------------------------------------------------------------------
+```text
+http://localhost:8080/healthhub/
+```
 
-# Default Access
+## Environment variables
 
-Admin user is seeded via Liquibase.
+Create a `.env` file based on `.env.example`:
 
-username: admin\
-roles: ADMIN
+```env
+MSSQL_SA_PASSWORD=YourStr0ng!Passw0rd
+```
 
-User roles are stored in:
+## Default access
 
-app_role
+An initial admin user is created via Liquibase seed data.
 
-User assignments:
+- username: `admin`
+- role: `ADMIN`
 
-app_user_role
+## Project structure
 
-------------------------------------------------------------------------
-
-# Project Structure
-
+```text
 src/main/java
-
--   auth
--   bootstrap
--   domain
--   persistence
--   service
--   tools
+ ├─ auth
+ ├─ domain
+ ├─ persistence
+ ├─ web
+ └─ tools
 
 src/main/resources/db/changelog
 
-------------------------------------------------------------------------
+docker/
+ ├─ docker-compose.yml
+ └─ wildfly/
+     ├─ Dockerfile
+     ├─ configure.cli
+     └─ modules/com/microsoft/sqlserver/main/module.xml
+```
 
-# Roadmap / Open Tasks
+## Roadmap
 
-## Health Endpoint
+Open next steps:
 
-GET /api/health
+- Health endpoint (`/api/health`)
+- persistent audit log
+- login rate limiting
+- session timeout
+- GitHub Actions CI/CD pipeline
 
-Used for:
+## License
 
--   monitoring
--   load balancers
--   Kubernetes readiness checks
-
-Example response:
-
-{ "status": "UP" }
-
-------------------------------------------------------------------------
-
-## Audit Logging
-
-Suggested schema:
-
-audit_log
-
-id\
-timestamp\
-user_id\
-action\
-entity\
-entity_id\
-ip_address
-
-Example events:
-
-LOGIN_SUCCESS\
-LOGIN_FAILED\
-PATIENT_EXPORT\
-PATIENT_UPDATE
-
-------------------------------------------------------------------------
-
-## Login Rate Limiting
-
-Protection against brute force attacks.
-
-Example:
-
-max 5 login attempts per minute
-
-------------------------------------------------------------------------
-
-## Session Timeout
-
-Recommended timeout:
-
-30 minutes idle
-
-------------------------------------------------------------------------
-
-## CI/CD Pipeline
-
-Planned GitHub Action workflow:
-
-push → build → test → package → deploy
-
-------------------------------------------------------------------------
-
-# Philosophy
-
-HealthHub focuses on explicit enterprise architecture.
-
-Key principles:
-
--   minimal framework magic
--   deterministic builds
--   database migrations via Liquibase
--   strong authentication
-
-Stack:
-
-Java\
-Jakarta EE\
-WildFly\
-Liquibase\
-SQL Server\
-Docker
-
-------------------------------------------------------------------------
-
-# License
-
-TBD
+MIT

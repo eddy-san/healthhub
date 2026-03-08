@@ -1,0 +1,7 @@
+.git
+.github
+.idea
+!target/*.war
+**/target/classes
+**/target/test-classes
+**/*.iml

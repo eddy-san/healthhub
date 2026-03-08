@@ -3,18 +3,13 @@ setlocal enabledelayedexpansion
 
 echo [STEP 0] Load .env
 
-for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
-    if "%%A"=="MSSQL_SA_PASSWORD" set MSSQL_SA_PASSWORD=%%B
+if not exist ".env" (
+    echo ERROR: .env not found
+    goto fail
 )
 
-set WILDFLY_HOME=..\..\wildfly-39.0.1.Final\wildfly-39.0.1.Final
-set WILDFLY_BIN=%WILDFLY_HOME%\bin
-set WILDFLY_DEPLOY=%WILDFLY_HOME%\standalone\deployments
-set WAR=target\healthhub-1.0-SNAPSHOT.war
-
-if not exist "%WILDFLY_HOME%" (
-    echo ERROR: WildFly home not found: %WILDFLY_HOME%
-    goto fail
+for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
+    if "%%A"=="MSSQL_SA_PASSWORD" set MSSQL_SA_PASSWORD=%%B
 )
 
 if "%MSSQL_SA_PASSWORD%"=="" (
@@ -22,54 +17,41 @@ if "%MSSQL_SA_PASSWORD%"=="" (
     goto fail
 )
 
+set COMPOSE_FILE=docker\docker-compose.yml
+set DRIVER_SOURCE=%USERPROFILE%\.m2\repository\com\microsoft\sqlserver\mssql-jdbc\12.6.1.jre11\mssql-jdbc-12.6.1.jre11.jar
+set DRIVER_TARGET=docker\wildfly\modules\com\microsoft\sqlserver\main\mssql-jdbc.jar
+
+if not exist "%COMPOSE_FILE%" (
+    echo ERROR: %COMPOSE_FILE% not found
+    goto fail
+)
+
 echo [STEP 1] Build WAR
 call .\mvnw.cmd clean package
 if errorlevel 1 goto fail
 
-echo [STEP 2] Check WildFly
-
-curl -s http://localhost:8080/ >nul 2>&1
-if not errorlevel 1 (
-    echo WildFly already running.
-    goto wildflyready
+echo [STEP 2] Prepare SQL Server JDBC driver for WildFly image
+if not exist "%DRIVER_SOURCE%" (
+    echo ERROR: JDBC driver not found:
+    echo %DRIVER_SOURCE%
+    goto fail
 )
 
-echo Starting WildFly...
-start "WildFly" /D "%WILDFLY_BIN%" cmd /c "set MSSQL_SA_PASSWORD=%MSSQL_SA_PASSWORD% && standalone.bat"
+copy /Y "%DRIVER_SOURCE%" "%DRIVER_TARGET%" >nul
+if errorlevel 1 goto fail
 
-for /L %%I in (1,1,60) do (
-    curl -s http://localhost:8080/ >nul 2>&1
+echo [STEP 3] Start SQL Server if needed
+docker compose --env-file .env -f "%COMPOSE_FILE%" up -d healthhub-sql
+if errorlevel 1 goto fail
 
-    if not errorlevel 1 (
-        echo WildFly ready.
-        goto wildflyready
-    )
-
-    echo Waiting for WildFly... (%%I/60)
-    timeout /t 1 >nul
-)
-
-echo ERROR: WildFly did not start.
-goto fail
-
-:wildflyready
-
-echo [STEP 3] Clean old deployment markers
-del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war" 2>nul
-del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.deployed" 2>nul
-del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.failed" 2>nul
-del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.isdeploying" 2>nul
-del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.undeployed" 2>nul
-del /Q "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.dodeploy" 2>nul
-
-echo [STEP 4] Deploy WAR
-copy /Y "%WAR%" "%WILDFLY_DEPLOY%" >nul
-type nul > "%WILDFLY_DEPLOY%\healthhub-1.0-SNAPSHOT.war.dodeploy"
+echo [STEP 4] Build and start WildFly app container
+docker compose --env-file .env -f "%COMPOSE_FILE%" up --build -d healthhub-app
+if errorlevel 1 goto fail
 
 echo.
 echo ====================================
 echo HealthHub deployed successfully
-echo http://localhost:8080/healthhub-1.0-SNAPSHOT/
+echo http://localhost:8080/healthhub
 echo ====================================
 echo.
 goto end

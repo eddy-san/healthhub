@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module xmlns="urn:jboss:module:1.9" name="com.microsoft.sqlserver">
+    <resources>
+        <resource-root path="mssql-jdbc.jar"/>
+    </resources>
+
+    <dependencies>
+        <module name="java.logging"/>
+        <module name="java.naming"/>
+        <module name="java.sql"/>
+        <module name="jakarta.transaction.api"/>
+    </dependencies>
+</module>

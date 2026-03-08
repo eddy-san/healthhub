@@ -28,3 +28,7 @@ liquibase-master.properties
 # WildFly temp files
 # =========================
 standalone/
+
+# local Docker build artifact
+docker/wildfly/modules/com/microsoft/sqlserver/main/mssql-jdbc-12.6.1.jre11.jar
+docker/wildfly/modules/com/microsoft/sqlserver/main/mssql-jdbc-13.2.1.jre11.jar

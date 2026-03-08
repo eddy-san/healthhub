@@ -1,0 +1,9 @@
+embed-server --std-out=echo
+
+/subsystem=datasources/jdbc-driver=mssql:add(
+    driver-name=mssql,
+    module-name=com.microsoft.sqlserver,
+    driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
+)
+
+stop-embedded-server
