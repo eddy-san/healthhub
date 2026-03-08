@@ -12,7 +12,7 @@ MSSQL_SA_PASSWORD="$(grep '^MSSQL_SA_PASSWORD=' .env | cut -d '=' -f2- | tr -d '
 export JAVA_TOOL_OPTIONS="-Ddb.password=$MSSQL_SA_PASSWORD"
 
 echo "[STEP 1] Start SQL Server"
-docker compose up -d
+docker compose -f docker/docker-compose.yml up -d
 
 echo "[STEP 1.1] Wait for SQL Server"
 SQL_READY=false
