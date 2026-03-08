@@ -1,172 +1,216 @@
+
 # HealthHub
 
 ![Java](https://img.shields.io/badge/Java-21-blue)
-![Jakarta EE](https://img.shields.io/badge/JakartaEE-WildFly-orange)
-![Build](https://img.shields.io/badge/build-maven-success)
-![Database](https://img.shields.io/badge/database-SQL%20Server-red)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
+![Jakarta EE](https://img.shields.io/badge/JakartaEE-10-orange)
+![WildFly](https://img.shields.io/badge/WildFly-39-red)
+![Docker](https://img.shields.io/badge/Docker-ready-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-HealthHub is a Jakarta EE backend platform for managing clinical study data, patient information, and secure authentication.
+HealthHub is a **secure Jakarta EE web application** for managing portal access, event registrations, and clinical data workflows.
 
-The stack is intentionally explicit and enterprise-oriented:
+The project demonstrates a **modern enterprise stack**:
 
-- WildFly 39
-- Jakarta EE 11
-- JPA / Hibernate
+- Jakarta EE
+- WildFly
+- SQL Server
 - Liquibase
-- SQL Server 2022
-- Docker / Docker Compose
-- Maven Wrapper
+- Docker
+- Maven
 
-## Architecture
+The entire stack runs locally with **one-command deployment**.
 
-```text
-Browser
-  ↓
-JSF / Web Layer
-  ↓
-AuthenticationService / Application Services
-  ↓
-Repositories (JPA)
-  ↓
-SQL Server
+---
+
+# Architecture
+
+Browser  
+↓  
+WildFly (Jakarta EE / JSF)  
+↓  
+JDBC Datasource  
+↓  
+SQL Server (Docker)
+
+Containers:
+
+healthhub-app  
+healthhub-sql
+
+---
+
+# Tech Stack
+
+Backend: Jakarta EE  
+Application Server: WildFly 39  
+Database: SQL Server 2022  
+Migrations: Liquibase  
+Containerization: Docker  
+Build: Maven
+
+---
+
+# Project Structure
 ```
-
-## Security
-
-Authentication uses PBKDF2 password hashing.
-
-```text
-pbkdf2$iterations$salt$hash
+HealthHub
+│
+├─ docker
+│  └─ wildfly
+│     ├─ modules
+│     │  └─ com/microsoft/sqlserver/main
+│     │        module.xml
+│     │        mssql-jdbc.jar
+│     ├─ standalone.xml
+│     ├─ Dockerfile
+│
+├─ src
+│  └─ main
+│     ├─ java
+│     ├─ resources
+│     └─ webapp
+│
+├─ docker-compose.yml
+├─ deploy.cmd
+├─ reset.cmd
+├─ pom.xml
+└─ README.md
 ```
+---
 
-Passwords are never stored in plaintext.
+# Quick Start
 
-## Database management
+Reset environment
 
-Schema management is handled by Liquibase.
-
-Migration sequence:
-
-```text
-010_tables.sql
-015_seed_roles.sql
-020_procs.sql
-025_seed_admin.sql
-```
-
-This keeps database changes reproducible and auditable.
-
-## Container setup
-
-All container-related files now live under the `docker/` directory.
-
-```text
-docker/
- ├─ docker-compose.yml
- └─ wildfly/
-     ├─ Dockerfile
-     ├─ configure.cli
-     └─ modules/com/microsoft/sqlserver/main/module.xml
-```
-
-The project runs with two containers:
-
-- `healthhub-sql` → SQL Server
-- `healthhub-app` → WildFly + deployed WAR + JDBC driver + datasource
-
-Inside Docker, the datasource connects to SQL Server via the Compose service name:
-
-```text
-healthhub-sql:1433
-```
-
-## Local development workflow
-
-### 1. Reset database
-
-```bat
 reset.cmd
-```
 
-This will:
+Deploy application
 
-1. stop and remove containers and volumes
-2. start SQL Server
-3. wait for readiness
-4. execute Liquibase migrations
-
-Internally it uses:
-
-```bat
-docker compose --env-file .env -f docker\docker-compose.yml down -v --remove-orphans
-docker compose --env-file .env -f docker\docker-compose.yml up -d healthhub-sql
-```
-
-### 2. Build and deploy app
-
-```bat
 deploy.cmd
-```
 
-This will:
+Application:
 
-1. build the WAR with Maven Wrapper
-2. copy the SQL Server JDBC driver from the local Maven cache into the Docker build context
-3. build the WildFly container image
-4. start / update the application container
+http://localhost:8080/healthhub
 
-Application URL:
+---
 
-```text
-http://localhost:8080/healthhub/
-```
+# Default Login
 
-## Environment variables
+Configured in `.env`
 
-Create a `.env` file based on `.env.example`:
+APP_LOGIN_USER=admin  
+APP_LOGIN_PASSWORD=admin
 
-```env
-MSSQL_SA_PASSWORD=YourStr0ng!Passw0rd
-```
+---
 
-## Default access
+# Environment Variables
 
-An initial admin user is created via Liquibase seed data.
+Example `.env`
 
-- username: `admin`
-- role: `ADMIN`
+MSSQL_SA_PASSWORD=StrongPassword123!  
+APP_LOGIN_USER=admin  
+APP_LOGIN_PASSWORD=admin
 
-## Project structure
+---
 
-```text
-src/main/java
- ├─ auth
- ├─ domain
- ├─ persistence
- ├─ web
- └─ tools
+# Docker
 
-src/main/resources/db/changelog
+Check containers
 
-docker/
- ├─ docker-compose.yml
- └─ wildfly/
-     ├─ Dockerfile
-     ├─ configure.cli
-     └─ modules/com/microsoft/sqlserver/main/module.xml
-```
+docker ps
 
-## Roadmap
+Logs
 
-Open next steps:
+docker logs healthhub-app  
+docker logs healthhub-sql
 
-- Health endpoint (`/api/health`)
-- persistent audit log
-- login rate limiting
-- session timeout
-- GitHub Actions CI/CD pipeline
+---
 
-## License
+# Database
 
-MIT
+SQL Server runs inside Docker.
+
+Connection:
+
+localhost:1433  
+database: healthhub_db  
+user: sa
+
+WildFly datasource:
+
+java:/jdbc/HealthHubDS
+
+---
+
+# Liquibase
+
+Run migrations manually:
+
+mvn -Pupdate-schema process-resources
+
+---
+
+# Security Features
+
+Current:
+
+- Login authentication
+- Containerized database
+- Environment based secrets
+
+Planned:
+
+- Math CAPTCHA
+- Honeypot bot detection
+- Login rate limiting
+- Session timeout
+- Audit log table
+
+---
+
+# API
+
+Future endpoint
+
+GET /api/health
+
+Example response
+
+{
+"status": "UP",
+"database": "connected"
+}
+
+---
+
+# Roadmap
+
+Multi Organizer Event System
+
+Organizer  
+Event  
+User  
+Registration
+
+Audit log table
+
+audit_log  
+id  
+timestamp  
+user_id  
+action  
+entity  
+entity_id  
+ip
+
+---
+
+# License
+
+MIT License
+
+---
+
+# Author
+
+Eduard Roth  
+
