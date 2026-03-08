@@ -18,6 +18,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd ${{ secrets.APP_DIR }}
+            git config --global --add safe.directory ${{ secrets.APP_DIR }}
             git pull
             chmod +x deploy.sh
             ./deploy.sh
