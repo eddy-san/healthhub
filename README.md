@@ -107,8 +107,6 @@ APP_LOGIN_PASSWORD=admin
 Example `.env`
 
 MSSQL_SA_PASSWORD=StrongPassword123!  
-APP_LOGIN_USER=admin  
-APP_LOGIN_PASSWORD=admin
 
 ---
 
