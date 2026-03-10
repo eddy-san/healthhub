@@ -25,8 +25,8 @@ cd "$SCRIPT_DIR" || exit 1
 MSSQL_SA_PASSWORD="$(get_env_value MSSQL_SA_PASSWORD)"
 [ -n "$MSSQL_SA_PASSWORD" ] || fail "MSSQL_SA_PASSWORD not found in .env"
 
-COMPOSE_FILE="docker/docker-compose.yml"
-[ -f "$COMPOSE_FILE" ] || fail "$COMPOSE_FILE not found"
+[ -f "docker/docker-compose.yml" ] || fail "docker/docker-compose.yml not found"
+[ -f "docker/Dockerfile" ] || fail "docker/Dockerfile not found"
 
 echo "[STEP 1] Configure Java"
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
@@ -37,10 +37,14 @@ javac -version || fail "javac not available"
 ./mvnw -version || fail "maven wrapper not working"
 
 echo "[STEP 2] Build and start containers"
-docker compose --env-file .env -f "$COMPOSE_FILE" up -d --build healthhub-app || fail "Could not start healthhub-app"
+cd "$SCRIPT_DIR/docker" || fail "Could not change to docker directory"
+
+docker compose \
+  --env-file ../.env \
+  up -d --build healthhub-app || fail "Could not start healthhub-app"
 
 echo "[STEP 3] Show container status"
-docker compose --env-file .env -f "$COMPOSE_FILE" ps || true
+docker compose --env-file ../.env ps || true
 
 echo "[STEP 4] Wait for application"
 for i in $(seq 1 60); do
@@ -59,6 +63,6 @@ for i in $(seq 1 60); do
 done
 
 echo "[STEP 5] Application logs"
-docker compose --env-file .env -f "$COMPOSE_FILE" logs --no-color healthhub-app || true
+docker compose --env-file ../.env logs --no-color healthhub-app || true
 
 fail "Application did not become reachable in time"
