@@ -22,6 +22,6 @@ jobs:
             cd /opt/healthhub
             git fetch origin
             git reset --hard origin/main
-            chmod +x reset.sh deploy.sh
+            chmod +x reset.sh deploy.sh mvnw
             ./reset.sh
             ./deploy.sh

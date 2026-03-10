@@ -28,16 +28,27 @@ MSSQL_SA_PASSWORD="$(get_env_value MSSQL_SA_PASSWORD)"
 COMPOSE_FILE="docker/docker-compose.yml"
 [ -f "$COMPOSE_FILE" ] || fail "$COMPOSE_FILE not found"
 
-echo "[STEP 1] Build application"
+echo "[STEP 1] Configure Java"
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
+
+java -version || fail "java not available"
+javac -version || fail "javac not available"
+./mvnw -version || fail "maven wrapper not working"
+
+echo "[STEP 2] Build application"
 ./mvnw -DskipTests clean package || fail "Maven build failed"
 
-echo "[STEP 2] Start application container"
+echo "[STEP 3] Stop old app container if running"
+docker compose --env-file .env -f "$COMPOSE_FILE" stop healthhub-app >/dev/null 2>&1 || true
+
+echo "[STEP 4] Start application container"
 docker compose --env-file .env -f "$COMPOSE_FILE" up -d --build healthhub-app || fail "Could not start healthhub-app"
 
-echo "[STEP 3] Show container status"
+echo "[STEP 5] Show container status"
 docker compose --env-file .env -f "$COMPOSE_FILE" ps || true
 
-echo "[STEP 4] Wait for application"
+echo "[STEP 6] Wait for application health"
 for i in $(seq 1 30); do
     if curl -fsS http://localhost:8080/healthhub/api/health >/dev/null 2>&1; then
         echo "Application is healthy."
@@ -53,7 +64,7 @@ for i in $(seq 1 30); do
     sleep 2
 done
 
-echo "[STEP 5] Application logs"
+echo "[STEP 7] Application logs"
 docker compose --env-file .env -f "$COMPOSE_FILE" logs --no-color healthhub-app || true
 
 fail "Application did not become healthy in time"
