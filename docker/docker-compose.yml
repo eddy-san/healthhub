@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   healthhub-sql:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -8,10 +6,12 @@ services:
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    ports:
+      - "1433:1433"
     volumes:
       - mssql_data:/var/opt/mssql
     networks:
-      - internal
+      - healthhub_internal
 
   healthhub-app:
     build:
@@ -22,7 +22,7 @@ services:
     depends_on:
       - healthhub-sql
     networks:
-      - internal
+      - healthhub_internal
       - traefik_default
     labels:
       - "traefik.enable=true"
@@ -35,7 +35,7 @@ volumes:
   mssql_data:
 
 networks:
-  internal:
+  healthhub_internal:
     driver: bridge
   traefik_default:
     external: true
