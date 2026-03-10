@@ -11,7 +11,7 @@ RUN ./mvnw -q -DskipTests dependency:go-offline
 COPY src src
 RUN ./mvnw -DskipTests clean package
 
-FROM quay.io/wildfly/wildfly:39.0.1.Final-jdk21
+FROM quay.io/wildfly/wildfly:latest-jdk21
 
 ENV JBOSS_HOME=/opt/jboss/wildfly
 
