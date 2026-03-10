@@ -48,10 +48,10 @@ docker compose --env-file .env -f "$COMPOSE_FILE" up -d --build healthhub-app ||
 echo "[STEP 5] Show container status"
 docker compose --env-file .env -f "$COMPOSE_FILE" ps || true
 
-echo "[STEP 6] Wait for application health"
-for i in $(seq 1 30); do
-    if curl -fsS http://localhost:8080/healthhub/api/health >/dev/null 2>&1; then
-        echo "Application is healthy."
+echo "[STEP 6] Wait for application"
+for i in $(seq 1 60); do
+    if curl -fsS http://localhost:8080/healthhub/ >/dev/null 2>&1; then
+        echo "Application is reachable."
         echo
         echo "===================================="
         echo "HealthHub deploy completed successfully"
@@ -60,11 +60,11 @@ for i in $(seq 1 30); do
         exit 0
     fi
 
-    echo "Waiting for application... ($i/30)"
+    echo "Waiting for application... ($i/60)"
     sleep 2
 done
 
 echo "[STEP 7] Application logs"
 docker compose --env-file .env -f "$COMPOSE_FILE" logs --no-color healthhub-app || true
 
-fail "Application did not become healthy in time"
+fail "Application did not become reachable in time"

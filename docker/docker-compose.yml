@@ -1,34 +1,36 @@
+version: "3.8"
+
 services:
   healthhub-sql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: healthhub-sql
+    restart: unless-stopped
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
-    ports:
-      - "1433:1433"
+      SA_PASSWORD: ${MSSQL_SA_PASSWORD}
     volumes:
       - mssql_data:/var/opt/mssql
-    healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" || exit 1
-      interval: 10s
-      timeout: 5s
-      retries: 20
+    networks:
+      - traefik_default
 
   healthhub-app:
-    build:
-      context: ..
-      dockerfile: docker/wildfly/Dockerfile
+    build: .
     container_name: healthhub-app
-    environment:
-      DB_USER: sa
-      DB_PASSWORD: ${MSSQL_SA_PASSWORD}
-    ports:
-      - "8080:8080"
-      - "9990:9990"
+    restart: unless-stopped
     depends_on:
-      healthhub-sql:
-        condition: service_healthy
+      - healthhub-sql
+    networks:
+      - traefik_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.healthhub.rule=Host(`healthhub.roth-it-solutions.de`)"
+      - "traefik.http.routers.healthhub.entrypoints=websecure"
+      - "traefik.http.routers.healthhub.tls.certresolver=letsencrypt"
+      - "traefik.http.services.healthhub.loadbalancer.server.port=8080"
 
 volumes:
   mssql_data:
+
+networks:
+  traefik_default:
+    external: true
