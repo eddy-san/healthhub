@@ -16,7 +16,7 @@ services:
   healthhub-app:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/wildfly/Dockerfile
     container_name: healthhub-app
     restart: unless-stopped
     depends_on:
