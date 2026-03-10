@@ -2,7 +2,7 @@ name: Deploy HealthHub
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deploy:
@@ -17,8 +17,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd ${{ secrets.APP_DIR }}
-            git config --global --add safe.directory ${{ secrets.APP_DIR }}
-            git pull
-            chmod +x deploy.sh
+            set -e
+            cd /opt/healthhub
+            git fetch origin
+            git reset --hard origin/main
+            chmod +x reset.sh deploy.sh
+            ./reset.sh
             ./deploy.sh
