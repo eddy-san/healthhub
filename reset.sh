@@ -55,7 +55,11 @@ done
 
 [ "$SQL_READY" = true ] || fail "SQL Server did not become ready in time"
 
-echo "[STEP 5] Run Liquibase migrations"
+echo "[STEP 5] Configure Java"
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
+
+echo "[STEP 6] Run Liquibase migrations"
 ./mvnw -Pupdate-schema "-Ddb.password=$MSSQL_SA_PASSWORD" process-resources || fail "Liquibase migrations failed"
 
 echo

@@ -11,15 +11,18 @@ services:
     volumes:
       - mssql_data:/var/opt/mssql
     networks:
-      - traefik_default
+      - internal
 
   healthhub-app:
-    build: .
+    build:
+      context: ..
+      dockerfile: Dockerfile
     container_name: healthhub-app
     restart: unless-stopped
     depends_on:
       - healthhub-sql
     networks:
+      - internal
       - traefik_default
     labels:
       - "traefik.enable=true"
@@ -32,5 +35,7 @@ volumes:
   mssql_data:
 
 networks:
+  internal:
+    driver: bridge
   traefik_default:
     external: true

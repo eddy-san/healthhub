@@ -36,21 +36,15 @@ java -version || fail "java not available"
 javac -version || fail "javac not available"
 ./mvnw -version || fail "maven wrapper not working"
 
-echo "[STEP 2] Build application"
-./mvnw -DskipTests clean package || fail "Maven build failed"
-
-echo "[STEP 3] Stop old app container if running"
-docker compose --env-file .env -f "$COMPOSE_FILE" stop healthhub-app >/dev/null 2>&1 || true
-
-echo "[STEP 4] Start application container"
+echo "[STEP 2] Build and start containers"
 docker compose --env-file .env -f "$COMPOSE_FILE" up -d --build healthhub-app || fail "Could not start healthhub-app"
 
-echo "[STEP 5] Show container status"
+echo "[STEP 3] Show container status"
 docker compose --env-file .env -f "$COMPOSE_FILE" ps || true
 
-echo "[STEP 6] Wait for application"
+echo "[STEP 4] Wait for application"
 for i in $(seq 1 60); do
-    if curl -fsS http://localhost:8080/healthhub/ >/dev/null 2>&1; then
+    if curl -kfsS https://healthhub.roth-it-solutions.de/ >/dev/null 2>&1; then
         echo "Application is reachable."
         echo
         echo "===================================="
@@ -64,7 +58,7 @@ for i in $(seq 1 60); do
     sleep 2
 done
 
-echo "[STEP 7] Application logs"
+echo "[STEP 5] Application logs"
 docker compose --env-file .env -f "$COMPOSE_FILE" logs --no-color healthhub-app || true
 
 fail "Application did not become reachable in time"
