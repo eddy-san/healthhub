@@ -16,7 +16,7 @@ services:
   healthhub-app:
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: healthhub-app
     restart: unless-stopped
     depends_on:
@@ -36,6 +36,5 @@ volumes:
 
 networks:
   healthhub_internal:
-    driver: bridge
   traefik_default:
     external: true
