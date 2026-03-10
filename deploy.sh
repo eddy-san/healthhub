@@ -1,64 +1,55 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WILDFLY_URL="http://localhost:8080/healthhub"
+fail() {
+    echo
+    echo "ERROR: $1"
+    echo
+    exit 1
+}
+
+get_env_value() {
+    local key="$1"
+    local value
+    value="$(grep "^${key}=" .env | cut -d '=' -f2- | tr -d '\r' || true)"
+    echo "$value"
+}
 
 echo "[STEP 0] Load .env"
-MSSQL_SA_PASSWORD="$(grep '^MSSQL_SA_PASSWORD=' .env | cut -d '=' -f2- | tr -d '\r')"
-APP_LOGIN_USER="$(grep '^APP_LOGIN_USER=' .env | cut -d '=' -f2- | tr -d '\r')"
-APP_LOGIN_PASSWORD="$(grep '^APP_LOGIN_PASSWORD=' .env | cut -d '=' -f2- | tr -d '\r')"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR" || exit 1
+
+[ -f ".env" ] || fail ".env not found"
+
+MSSQL_SA_PASSWORD="$(get_env_value MSSQL_SA_PASSWORD)"
+[ -n "$MSSQL_SA_PASSWORD" ] || fail "MSSQL_SA_PASSWORD not found in .env"
+
+COMPOSE_FILE="docker/docker-compose.yml"
+[ -f "$COMPOSE_FILE" ] || fail "$COMPOSE_FILE not found"
 
 export JAVA_TOOL_OPTIONS="-Ddb.password=$MSSQL_SA_PASSWORD"
-export APP_LOGIN_USER
-export APP_LOGIN_PASSWORD
 
-echo "[STEP 1] Start SQL Server only"
-docker compose up -d healthhub-sql
+echo "[STEP 1] Build application"
+./mvnw -DskipTests clean package || fail "Maven build failed"
 
-echo "[STEP 1.1] Wait for SQL Server"
-SQL_READY=false
-for i in {1..30}; do
-  if docker exec healthhub-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" >/dev/null 2>&1; then
-    SQL_READY=true
-    echo "SQL Server ready."
-    break
-  fi
-  echo "Waiting for SQL Server... ($i/30)"
-  sleep 2
+echo "[STEP 2] Start application container"
+docker compose --env-file .env -f "$COMPOSE_FILE" up -d --build healthhub-app || fail "Could not start healthhub-app"
+
+echo "[STEP 3] Wait for application"
+for i in $(seq 1 30); do
+    if curl -fsS http://localhost:8080/healthhub/api/health >/dev/null 2>&1; then
+        echo "Application is healthy."
+        echo
+        echo "===================================="
+        echo "HealthHub deploy completed successfully"
+        echo "===================================="
+        echo
+        exit 0
+    fi
+
+    echo "Waiting for application... ($i/30)"
+    sleep 2
 done
 
-if [ "$SQL_READY" = false ]; then
-  echo "ERROR: SQL Server did not become ready in time."
-  exit 1
-fi
-
-echo "[STEP 2] Run Liquibase"
-./mvnw -Pupdate-schema clean process-resources
-
-echo "[STEP 3] Build WAR"
-./mvnw clean package
-
-echo "[STEP 4] Start / rebuild app container"
-docker compose up -d --build healthhub-app
-
-echo "[STEP 4.1] Wait for app"
-APP_READY=false
-for i in {1..60}; do
-  if curl -fsS "$WILDFLY_URL/" >/dev/null 2>&1 || curl -fsS http://localhost:8080/ >/dev/null 2>&1; then
-    APP_READY=true
-    echo "App ready."
-    break
-  fi
-  echo "Waiting for app... ($i/60)"
-  sleep 2
-done
-
-if [ "$APP_READY" = false ]; then
-  echo "ERROR: App did not become ready in time."
-  docker compose logs --tail=200 healthhub-app || true
-  exit 1
-fi
-
-echo
-echo "HealthHub deployed 🚀"
-echo "$WILDFLY_URL/"
+fail "Application did not become healthy in time"
