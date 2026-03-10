@@ -21,6 +21,12 @@ services:
     restart: unless-stopped
     depends_on:
       - healthhub-sql
+    environment:
+      DB_USER: sa
+      DB_PASSWORD: ${MSSQL_SA_PASSWORD}
+      DB_HOST: healthhub-sql
+      DB_PORT: 1433
+      DB_NAME: healthhub_db
     networks:
       - healthhub_internal
       - traefik_default
