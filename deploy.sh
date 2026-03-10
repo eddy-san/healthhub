@@ -28,15 +28,16 @@ MSSQL_SA_PASSWORD="$(get_env_value MSSQL_SA_PASSWORD)"
 COMPOSE_FILE="docker/docker-compose.yml"
 [ -f "$COMPOSE_FILE" ] || fail "$COMPOSE_FILE not found"
 
-export JAVA_TOOL_OPTIONS="-Ddb.password=$MSSQL_SA_PASSWORD"
-
 echo "[STEP 1] Build application"
 ./mvnw -DskipTests clean package || fail "Maven build failed"
 
 echo "[STEP 2] Start application container"
 docker compose --env-file .env -f "$COMPOSE_FILE" up -d --build healthhub-app || fail "Could not start healthhub-app"
 
-echo "[STEP 3] Wait for application"
+echo "[STEP 3] Show container status"
+docker compose --env-file .env -f "$COMPOSE_FILE" ps || true
+
+echo "[STEP 4] Wait for application"
 for i in $(seq 1 30); do
     if curl -fsS http://localhost:8080/healthhub/api/health >/dev/null 2>&1; then
         echo "Application is healthy."
@@ -51,5 +52,8 @@ for i in $(seq 1 30); do
     echo "Waiting for application... ($i/30)"
     sleep 2
 done
+
+echo "[STEP 5] Application logs"
+docker compose --env-file .env -f "$COMPOSE_FILE" logs --no-color healthhub-app || true
 
 fail "Application did not become healthy in time"
