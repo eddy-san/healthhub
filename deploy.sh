@@ -26,7 +26,7 @@ MSSQL_SA_PASSWORD="$(get_env_value MSSQL_SA_PASSWORD)"
 [ -n "$MSSQL_SA_PASSWORD" ] || fail "MSSQL_SA_PASSWORD not found in .env"
 
 [ -f "docker/docker-compose.yml" ] || fail "docker/docker-compose.yml not found"
-[ -f "docker/Dockerfile" ] || fail "docker/Dockerfile not found"
+[ -f "docker/wildfly/Dockerfile" ] || fail "docker/wildfly/Dockerfile not found"
 
 echo "[STEP 1] Configure Java"
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
