@@ -48,7 +48,7 @@ docker compose --env-file ../.env ps || true
 
 echo "[STEP 4] Wait for application"
 for i in $(seq 1 60); do
-    if curl -kfsS https://healthhub.roth-it-solutions.de/ >/dev/null 2>&1; then
+    if curl -fsS http://127.0.0.1:18080/ >/dev/null 2>&1; then
         echo "Application is reachable."
         echo
         echo "===================================="
