@@ -31,9 +31,12 @@ services:
       - "127.0.0.1:18080:8080"
     networks:
       - healthhub_internal
+      - traefik_default
 
 volumes:
   mssql_data:
 
 networks:
   healthhub_internal:
+  traefik_default:
+    external: true
