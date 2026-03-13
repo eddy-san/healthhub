@@ -1,66 +1,129 @@
-#!/usr/bin/env bash
-set -u
+@echo off
+setlocal enabledelayedexpansion
 
-fail() {
-    echo
-    echo "ERROR: $1"
-    echo
-    echo "ERROR: Reset failed."
-    echo
-    exit 1
-}
+echo.
+echo ================================
+echo HealthHub DEPLOY
+echo ================================
+echo.
 
-echo "[STEP 0] Load .env"
+REM Ins Script-Verzeichnis wechseln
+cd /d "%~dp0"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR" || exit 1
+echo [STEP 0] Load .env
 
-[ -f ".env" ] || fail ".env not found"
+if not exist ".env" (
+    echo ERROR: .env not found
+    goto fail
+)
 
-MSSQL_SA_PASSWORD="$(grep '^MSSQL_SA_PASSWORD=' .env | cut -d '=' -f2- | tr -d '\r')"
-[ -n "$MSSQL_SA_PASSWORD" ] || fail "MSSQL_SA_PASSWORD not found in .env"
+for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
+    if not "%%A"=="" (
+        if /I "%%A"=="MSSQL_SA_PASSWORD" set "MSSQL_SA_PASSWORD=%%B"
+    )
+)
 
-COMPOSE_FILE="docker/docker-compose.yml"
-[ -f "$COMPOSE_FILE" ] || fail "$COMPOSE_FILE not found"
+if "%MSSQL_SA_PASSWORD%"=="" (
+    echo ERROR: MSSQL_SA_PASSWORD not found in .env
+    goto fail
+)
 
-echo "[STEP 1] Remove conflicting standalone containers if they exist"
-docker rm -f healthhub-sql >/dev/null 2>&1 || true
-docker rm -f healthhub-app >/dev/null 2>&1 || true
+set "COMPOSE_FILE=docker\docker-compose.yml"
+set "DRIVER_SOURCE=%USERPROFILE%\.m2\repository\com\microsoft\sqlserver\mssql-jdbc\12.6.1.jre11\mssql-jdbc-12.6.1.jre11.jar"
+set "DRIVER_TARGET=docker\wildfly\modules\com\microsoft\sqlserver\main\mssql-jdbc.jar"
 
-echo "[STEP 2] Stop and remove all containers and volumes"
-docker compose --env-file .env -f "$COMPOSE_FILE" down -v || \
-    echo "WARNING: docker compose down returned a non-zero exit code, continuing..."
+if not exist "%COMPOSE_FILE%" (
+    echo ERROR: %COMPOSE_FILE% not found
+    goto fail
+)
 
-echo "[STEP 3] Start SQL Server container"
-docker compose --env-file .env -f "$COMPOSE_FILE" up -d healthhub-sql || fail "Could not start healthhub-sql"
+echo.
+echo [STEP 1] Build WAR
+call mvnw.cmd clean package
+if errorlevel 1 (
+    echo ERROR: Maven build failed
+    goto fail
+)
 
-echo "[STEP 4] Wait for SQL Server to become ready"
-SQL_READY=false
+echo.
+echo [STEP 2] Prepare SQL Server JDBC driver for WildFly image
+if not exist "%DRIVER_SOURCE%" (
+    echo ERROR: JDBC driver not found:
+    echo %DRIVER_SOURCE%
+    echo.
+    echo Tip: run Maven once or check the driver version/path.
+    goto fail
+)
 
-for i in $(seq 1 40); do
-    if docker exec healthhub-sql /opt/mssql-tools18/bin/sqlcmd \
-        -S localhost \
-        -U sa \
-        -P "$MSSQL_SA_PASSWORD" \
-        -C \
-        -Q "SELECT 1" >/dev/null 2>&1; then
-        SQL_READY=true
-        echo "SQL Server ready."
-        break
-    fi
+if not exist "docker\wildfly\modules\com\microsoft\sqlserver\main" (
+    echo ERROR: Target directory does not exist:
+    echo docker\wildfly\modules\com\microsoft\sqlserver\main
+    goto fail
+)
 
-    echo "Waiting for SQL Server... ($i/40)"
-    sleep 2
-done
+copy /Y "%DRIVER_SOURCE%" "%DRIVER_TARGET%" >nul
+if errorlevel 1 (
+    echo ERROR: Could not copy JDBC driver
+    goto fail
+)
 
-[ "$SQL_READY" = true ] || fail "SQL Server did not become ready in time"
+echo.
+echo [STEP 3] Start SQL Server if needed
+docker compose --env-file .env -f "%COMPOSE_FILE%" up -d healthhub-sql
+if errorlevel 1 (
+    echo ERROR: Could not start healthhub-sql
+    goto fail
+)
 
-echo "[STEP 5] Run Liquibase migrations"
-./mvnw -Pupdate-schema "-Ddb.password=$MSSQL_SA_PASSWORD" process-resources || fail "Liquibase migrations failed"
+echo.
+echo [STEP 4] Wait for SQL Server
+set "SQL_READY=0"
 
-echo
-echo "===================================="
-echo "HealthHub reset completed successfully"
-echo "SQL Server is running and schema is up to date"
-echo "===================================="
-echo
+for /L %%i in (1,1,40) do (
+    docker exec healthhub-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "%MSSQL_SA_PASSWORD%" -C -Q "SELECT 1" >nul 2>&1
+
+    if not errorlevel 1 (
+        set "SQL_READY=1"
+        echo SQL Server ready.
+        goto sqlready
+    )
+
+    echo Waiting for SQL Server... %%i/40
+    timeout /t 2 >nul
+)
+
+:sqlready
+if "%SQL_READY%"=="0" (
+    echo ERROR: SQL Server did not become ready
+    goto fail
+)
+
+echo.
+echo [STEP 5] Build and start WildFly app container
+docker compose --env-file .env -f "%COMPOSE_FILE%" up --build -d healthhub-app
+if errorlevel 1 (
+    echo ERROR: Could not build/start healthhub-app
+    goto fail
+)
+
+echo.
+echo ====================================
+echo HealthHub deployed successfully
+echo http://localhost:8080/healthhub
+echo ====================================
+echo.
+goto end
+
+:fail
+echo.
+echo ====================================
+echo ERROR: Deployment failed
+echo ====================================
+echo.
+pause
+exit /b 1
+
+:end
+pause
+endlocal
+exit /b 0
