@@ -1,4 +1,4 @@
-package de.healthhub.web.app;
+package de.healthhub.controller.web.app;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Named;

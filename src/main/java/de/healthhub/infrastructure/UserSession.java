@@ -1,6 +1,6 @@
-package de.healthhub.auth;
+package de.healthhub.infrastructure;
 
-import de.healthhub.domain.auth.RoleName;
+import de.healthhub.model.domain.user.RoleName;
 import jakarta.enterprise.context.SessionScoped;
 import jakarta.inject.Named;
 

@@ -1,6 +1,6 @@
-package de.healthhub.tools;
+package de.healthhub.util;
 
-import de.healthhub.auth.PasswordHasher;
+import de.healthhub.infrastructure.PasswordHasher;
 
 public class HashAdminPassword {
 

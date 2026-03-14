@@ -17,7 +17,7 @@
 
     <filter>
         <filter-name>AuthFilter</filter-name>
-        <filter-class>de.healthhub.web.security.AuthFilter</filter-class>
+        <filter-class>de.healthhub.controller.web.security.AuthFilter</filter-class>
     </filter>
 
     <filter-mapping>

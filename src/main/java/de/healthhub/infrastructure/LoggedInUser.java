@@ -1,6 +1,6 @@
-package de.healthhub.auth;
+package de.healthhub.infrastructure;
 
-import de.healthhub.domain.auth.RoleName;
+import de.healthhub.model.domain.user.RoleName;
 
 import java.io.Serializable;
 import java.util.Collections;

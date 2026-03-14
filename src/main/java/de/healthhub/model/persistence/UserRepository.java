@@ -1,6 +1,6 @@
-package de.healthhub.persistence;
+package de.healthhub.model.persistence;
 
-import de.healthhub.domain.auth.User;
+import de.healthhub.model.domain.user.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

@@ -1,4 +1,4 @@
-package de.healthhub.domain.auth;
+package de.healthhub.model.domain.user;
 
 import jakarta.persistence.*;
 
@@ -35,7 +35,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<RoleEntity> roles = new HashSet<>();
+    private Set<Role> roles = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -77,15 +77,15 @@ public class User {
         return createdAt;
     }
 
-    public Set<RoleEntity> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
-    public void addRole(RoleEntity role) {
+    public void addRole(Role role) {
         this.roles.add(role);
     }
 
-    public void removeRole(RoleEntity role) {
+    public void removeRole(Role role) {
         this.roles.remove(role);
     }
 }

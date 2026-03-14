@@ -1,7 +1,7 @@
-package de.healthhub.persistence;
+package de.healthhub.model.persistence;
 
-import de.healthhub.domain.auth.RoleEntity;
-import de.healthhub.domain.auth.RoleName;
+import de.healthhub.model.domain.user.Role;
+import de.healthhub.model.domain.user.RoleName;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -15,15 +15,15 @@ public class RoleRepository {
     @PersistenceContext(unitName = "healthhubPU")
     private EntityManager em;
 
-    public RoleEntity save(RoleEntity role) {
+    public Role save(Role role) {
         em.persist(role);
         return role;
     }
 
-    public Optional<RoleEntity> findByRoleName(RoleName roleName) {
-        List<RoleEntity> result = em.createQuery(
-                        "select r from RoleEntity r where r.roleName = :roleName",
-                        RoleEntity.class)
+    public Optional<Role> findByRoleName(RoleName roleName) {
+        List<Role> result = em.createQuery(
+                        "select r from Role r where r.roleName = :roleName",
+                        Role.class)
                 .setParameter("roleName", roleName)
                 .getResultList();
 

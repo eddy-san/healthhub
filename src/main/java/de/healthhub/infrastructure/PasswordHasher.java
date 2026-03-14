@@ -1,4 +1,4 @@
-package de.healthhub.auth;
+package de.healthhub.infrastructure;
 
 import jakarta.enterprise.context.ApplicationScoped;
 

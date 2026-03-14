@@ -1,6 +1,6 @@
-package de.healthhub.web.security;
+package de.healthhub.controller.web.security;
 
-import de.healthhub.auth.AuthenticationService;
+import de.healthhub.model.service.AuthenticationService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;

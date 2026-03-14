@@ -1,7 +1,7 @@
-package de.healthhub.web.security;
+package de.healthhub.controller.web.security;
 
-import de.healthhub.auth.UserSession;
-import de.healthhub.domain.auth.RoleName;
+import de.healthhub.infrastructure.UserSession;
+import de.healthhub.model.domain.user.RoleName;
 import jakarta.inject.Inject;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

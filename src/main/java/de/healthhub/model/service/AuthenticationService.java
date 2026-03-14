@@ -1,11 +1,14 @@
-package de.healthhub.auth;
+package de.healthhub.model.service;
 
-import de.healthhub.domain.auth.RoleEntity;
-import de.healthhub.domain.auth.RoleName;
-import de.healthhub.domain.auth.User;
-import de.healthhub.domain.patient.Patient;
-import de.healthhub.persistence.PatientRepository;
-import de.healthhub.persistence.UserRepository;
+import de.healthhub.infrastructure.LoggedInUser;
+import de.healthhub.infrastructure.PasswordHasher;
+import de.healthhub.infrastructure.UserSession;
+import de.healthhub.model.domain.user.Role;
+import de.healthhub.model.domain.user.RoleName;
+import de.healthhub.model.domain.user.User;
+import de.healthhub.model.domain.patient.Patient;
+import de.healthhub.model.persistence.PatientRepository;
+import de.healthhub.model.persistence.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -38,7 +41,7 @@ public class AuthenticationService {
         }
 
         Set<RoleName> roleNames = user.getRoles().stream()
-                .map(RoleEntity::getRoleName)
+                .map(Role::getRoleName)
                 .collect(Collectors.toSet());
 
         Long patientId = patientRepository.findByUserId(user.getId())

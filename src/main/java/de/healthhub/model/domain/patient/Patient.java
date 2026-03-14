@@ -1,6 +1,6 @@
-package de.healthhub.domain.patient;
+package de.healthhub.model.domain.patient;
 
-import de.healthhub.domain.auth.User;
+import de.healthhub.model.domain.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

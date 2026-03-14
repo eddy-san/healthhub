@@ -1,10 +1,10 @@
-package de.healthhub.domain.auth;
+package de.healthhub.model.domain.user;
 
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "app_role")
-public class RoleEntity {
+public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

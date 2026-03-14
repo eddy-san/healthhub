@@ -1,4 +1,4 @@
-package de.healthhub.domain.auth;
+package de.healthhub.model.domain.user;
 
 public enum RoleName {
     ADMIN,
