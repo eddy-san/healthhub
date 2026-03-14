@@ -1,12 +1,14 @@
 package de.healthhub.model.service;
 
+import de.healthhub.controller.api.dto.LoginResponse;
+import de.healthhub.infrastructure.JwtService;
 import de.healthhub.infrastructure.LoggedInUser;
 import de.healthhub.infrastructure.PasswordHasher;
 import de.healthhub.infrastructure.UserSession;
+import de.healthhub.model.domain.patient.Patient;
 import de.healthhub.model.domain.user.Role;
 import de.healthhub.model.domain.user.RoleName;
 import de.healthhub.model.domain.user.User;
-import de.healthhub.model.domain.patient.Patient;
 import de.healthhub.model.persistence.PatientRepository;
 import de.healthhub.model.persistence.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -30,8 +32,16 @@ public class AuthenticationService {
     @Inject
     private UserSession userSession;
 
+    @Inject
+    private JwtService jwtService;
+
+    /**
+     * Web Login (JSF)
+     */
     public boolean login(String username, String clearTextPassword) {
+
         User user = userRepository.findByUsername(username).orElse(null);
+
         if (user == null || !user.isEnabled()) {
             return false;
         }
@@ -48,12 +58,57 @@ public class AuthenticationService {
                 .map(Patient::getId)
                 .orElse(null);
 
-        LoggedInUser loggedInUser = new LoggedInUser(user.getId(), user.getUsername(), roleNames, patientId);
+        LoggedInUser loggedInUser =
+                new LoggedInUser(user.getId(), user.getUsername(), roleNames, patientId);
+
         userSession.login(loggedInUser);
+
         return true;
     }
 
+    /**
+     * Web Logout
+     */
     public void logout() {
         userSession.logout();
+    }
+
+    /**
+     * API Login (JWT)
+     */
+    public LoginResponse loginApi(String username, String password) {
+
+        System.out.println("API LOGIN username = [" + username + "]");
+
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        System.out.println("USER FOUND = " + (user != null));
+
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        System.out.println("DB USERNAME = [" + user.getUsername() + "]");
+        System.out.println("ENABLED = " + user.isEnabled());
+        System.out.println("HASH = " + user.getPasswordHash());
+
+        boolean match = passwordHasher.matches(password, user.getPasswordHash());
+        System.out.println("PASSWORD MATCH = " + match);
+
+        if (!user.isEnabled()) {
+            throw new IllegalArgumentException("User disabled");
+        }
+
+        if (!match) {
+            throw new IllegalArgumentException("Password mismatch");
+        }
+
+        String token = jwtService.createToken(user);
+
+        return new LoginResponse(
+                token,
+                "Bearer",
+                jwtService.getExpirationSeconds()
+        );
     }
 }

@@ -1,3 +1,4 @@
+
 # HealthHub
 *Open platform for wearable health data integration and digital health analytics.*
 
@@ -6,7 +7,6 @@
 
 HealthHub is an experimental **Jakarta EE platform for integrating health data and wearable devices**.
 
-
 ![JakartaEE](https://img.shields.io/badge/JakartaEE-10-orange)
 ![WildFly](https://img.shields.io/badge/WildFly-Application%20Server-red)
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-Database-blue)
@@ -14,11 +14,6 @@ HealthHub is an experimental **Jakarta EE platform for integrating health data a
 ![Docker](https://img.shields.io/badge/Docker-Container-blue)
 ![Traefik](https://img.shields.io/badge/Traefik-Reverse%20Proxy-purple)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-black)
-
-Live Demo:
-
-- https://healthhub.roth-it-solutions.de/
-- Demo account available on request
 
 ---
 
@@ -63,9 +58,40 @@ Current functionality
 - JPA persistence layer
 - Liquibase database migrations
 - Admin user bootstrap
+- JWT authentication for API
 - Dockerized deployment
 - Reverse proxy routing via Traefik
 - GitHub Actions CI/CD pipeline
+
+---
+
+# API Authentication
+
+Example login request
+
+```
+POST /api/auth/login
+```
+
+```
+curl -X POST "http://localhost:18080/api/auth/login" -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123!"}'
+```
+
+Example response
+
+```
+{
+  "token": "JWT_TOKEN",
+  "tokenType": "Bearer",
+  "expiresIn": 3600
+}
+```
+
+Using the token
+
+```
+curl -X GET "http://localhost:18080/api/v1/measurements/me" -H "Authorization: Bearer JWT_TOKEN"
+```
 
 ---
 
@@ -91,6 +117,7 @@ Pipeline ensures
 # Local Development
 
 Clone repository
+
 ```
 git clone https://github.com/eddy-san/healthhub.git
 cd healthhub
@@ -98,8 +125,21 @@ cd healthhub
 
 For convenience the repository includes:
 
-- `reset.cmd/reset.sh` – resets containers and database
-- `deploy.cmd/deploy.sh` – builds and starts the application
+- `reset.cmd` / `reset.sh` – resets containers and database
+- `deploy.cmd` / `deploy.sh` – builds and starts the application
+
+Run locally
+
+```
+deploy.cmd
+```
+
+Application will start at
+
+```
+http://localhost:18080
+```
+
 ---
 
 # Roadmap
@@ -140,4 +180,4 @@ MIT License
 
 # Author
 
-Eduard Roth  
+Eduard Roth

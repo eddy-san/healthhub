@@ -22,6 +22,11 @@ services:
     depends_on:
       - healthhub-sql
     environment:
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_SECONDS: ${JWT_EXPIRATION_SECONDS}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
       DB_USER: sa
       DB_PASSWORD: ${MSSQL_SA_PASSWORD}
       DB_HOST: healthhub-sql

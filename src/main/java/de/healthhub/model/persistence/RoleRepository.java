@@ -15,11 +15,6 @@ public class RoleRepository {
     @PersistenceContext(unitName = "healthhubPU")
     private EntityManager em;
 
-    public Role save(Role role) {
-        em.persist(role);
-        return role;
-    }
-
     public Optional<Role> findByRoleName(RoleName roleName) {
         List<Role> result = em.createQuery(
                         "select r from Role r where r.roleName = :roleName",
