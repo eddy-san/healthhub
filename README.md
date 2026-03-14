@@ -69,29 +69,23 @@ Current functionality
 
 Example login request
 
-```
 POST /api/auth/login
-```
 
-```
+Example curl request
+
 curl -X POST "http://localhost:18080/api/auth/login" -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123!"}'
-```
 
 Example response
 
-```
 {
-  "token": "JWT_TOKEN",
-  "tokenType": "Bearer",
-  "expiresIn": 3600
+"token": "JWT_TOKEN",
+"tokenType": "Bearer",
+"expiresIn": 3600
 }
-```
 
 Using the token
 
-```
 curl -X GET "http://localhost:18080/api/v1/measurements/me" -H "Authorization: Bearer JWT_TOKEN"
-```
 
 ---
 
@@ -118,10 +112,8 @@ Pipeline ensures
 
 Clone repository
 
-```
 git clone https://github.com/eddy-san/healthhub.git
 cd healthhub
-```
 
 For convenience the repository includes:
 
@@ -130,15 +122,11 @@ For convenience the repository includes:
 
 Run locally
 
-```
 deploy.cmd
-```
 
 Application will start at
 
-```
 http://localhost:18080
-```
 
 ---
 
