@@ -1,21 +1,22 @@
 package de.healthhub.controller.web.security;
 
-import de.healthhub.model.service.AuthenticationService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.faces.context.FacesContext;
-import jakarta.inject.Inject;
 import jakarta.inject.Named;
+
+import java.io.IOException;
 
 @Named
 @RequestScoped
 public class LogoutBean {
 
-    @Inject
-    private AuthenticationService authenticationService;
+    public void logout() throws IOException {
+        FacesContext context = FacesContext.getCurrentInstance();
 
-    public String logout() {
-        authenticationService.logout();
-        FacesContext.getCurrentInstance().getExternalContext().invalidateSession();
-        return "/index.xhtml?faces-redirect=true";
+        context.getExternalContext().invalidateSession();
+        context.getExternalContext().redirect(
+                context.getExternalContext().getRequestContextPath() + "/index.xhtml"
+        );
+        context.responseComplete();
     }
 }

@@ -1,16 +1,17 @@
 package de.healthhub.controller.web.security;
 
 import de.healthhub.infrastructure.UserSession;
-import de.healthhub.model.domain.user.RoleName;
 import jakarta.inject.Inject;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+@WebFilter("*.xhtml")
 public class AuthFilter extends HttpFilter {
 
     @Inject
@@ -21,21 +22,26 @@ public class AuthFilter extends HttpFilter {
                             HttpServletResponse response,
                             FilterChain chain) throws IOException, ServletException {
 
-        String uri = request.getRequestURI();
         String contextPath = request.getContextPath();
+        String uri = request.getRequestURI();
 
-        if (uri.endsWith("/index.xhtml") || uri.equals(contextPath + "/") || uri.contains("/jakarta.faces.resource/")) {
+        boolean loginPage =
+                uri.equals(contextPath + "/index.xhtml") ||
+                        uri.equals(contextPath + "/");
+
+        boolean publicResource =
+                uri.startsWith(contextPath + "/jakarta.faces.resource/");
+
+        boolean loggedIn =
+                userSession != null && userSession.isLoggedIn();
+
+        if (publicResource || loginPage) {
             chain.doFilter(request, response);
             return;
         }
 
-        if (userSession == null || !userSession.isLoggedIn()) {
+        if (!loggedIn) {
             response.sendRedirect(contextPath + "/index.xhtml");
-            return;
-        }
-
-        if (uri.startsWith(contextPath + "/admin/") && !userSession.hasRole(RoleName.ADMIN)) {
-            response.sendRedirect(contextPath + "/app/home.xhtml");
             return;
         }
 

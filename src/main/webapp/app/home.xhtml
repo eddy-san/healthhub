@@ -1,40 +1,182 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html">
+
 <h:head>
-    <title>HealthHub Home</title>
+    <title>HealthHub Dashboard</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+
 </h:head>
+
 <h:body styleClass="min-h-screen bg-slate-950 text-slate-100">
-    <div class="mx-auto max-w-4xl px-6 py-10">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold">HealthHub</h1>
-                <p class="mt-2 text-slate-400">Angemeldet als #{userSession.username}</p>
-            </div>
-            <h:form>
-                <h:commandButton value="Logout"
-                                 action="#{logoutBean.logout}"
-                                 styleClass="rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold hover:bg-slate-700"/>
-            </h:form>
-        </div>
 
-        <div class="mt-8 grid gap-4 md:grid-cols-2">
-            <div class="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-                <h2 class="text-xl font-semibold">Portal</h2>
-                <p class="mt-2 text-slate-400">Basisansicht nach erfolgreichem Login.</p>
-                <p class="mt-4 text-sm text-slate-300">User-ID: #{userSession.currentUserId}</p>
-                <p class="mt-1 text-sm text-slate-300">Patient-Kontext: #{userSession.currentPatientId}</p>
+    <div class="min-h-screen flex flex-col">
+
+        <!-- Header -->
+        <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+            <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-white">
+                        HealthHub
+                    </h1>
+
+                    <p class="text-sm text-slate-400">
+                        Wearable health data platform
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-3">
+
+                <span class="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-sm text-slate-300">
+                    Signed in as #{userSession.username}
+                </span>
+
+                    <h:form>
+                        <h:commandButton value="Logout"
+                                         action="#{logoutBean.logout}"
+                                         styleClass="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"/>
+                    </h:form>
+
+                </div>
+
+            </div>
+        </header>
+
+        <!-- Main -->
+        <main class="flex-1">
+
+            <div class="mx-auto max-w-6xl px-6 py-10">
+
+                <!-- Welcome -->
+                <div class="mb-8">
+
+                    <h2 class="text-3xl font-bold tracking-tight text-white">
+                        Welcome back, #{userSession.username}
+                    </h2>
+
+                    <p class="mt-2 text-sm text-slate-400">
+                        Secure access to your health data platform dashboard
+                    </p>
+
+                </div>
+
+                <!-- Cards -->
+                <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+
+                    <!-- Platform Status -->
+
+                    <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl backdrop-blur">
+
+                        <h3 class="text-lg font-semibold text-white">
+                            Platform Status
+                        </h3>
+
+                        <p class="mt-2 text-sm text-slate-400">
+                            Core infrastructure is running and secured through
+                            Traefik, WildFly and JWT-based API authentication.
+                        </p>
+
+                        <div class="mt-4 inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 border border-emerald-500/20">
+                            Operational
+                        </div>
+
+                    </div>
+
+                    <!-- API Security -->
+
+                    <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl backdrop-blur">
+
+                        <h3 class="text-lg font-semibold text-white">
+                            API Security
+                        </h3>
+
+                        <p class="mt-2 text-sm text-slate-400">
+                            Login endpoints are protected by JWT authentication,
+                            Traefik rate limiting and request protection.
+                        </p>
+
+                        <div class="mt-4 inline-flex rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-300 border border-cyan-500/20">
+                            Protected
+                        </div>
+
+                    </div>
+
+                    <!-- Vision -->
+
+                    <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl backdrop-blur">
+
+                        <h3 class="text-lg font-semibold text-white">
+                            Wearables Vision
+                        </h3>
+
+                        <p class="mt-2 text-sm text-slate-400">
+                            HealthHub is designed as an integration platform
+                            for wearable data, longitudinal monitoring and
+                            digital health analytics.
+                        </p>
+
+                        <div class="mt-4 inline-flex rounded-full bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-300 border border-violet-500/20">
+                            In Progress
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Quick Actions -->
+
+                <div class="mt-10 rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl backdrop-blur">
+
+                    <h3 class="text-2xl font-semibold text-white">
+                        Quick Actions
+                    </h3>
+
+                    <p class="mt-2 text-sm text-slate-400">
+                        Start from here to extend the platform with wearable ingestion,
+                        patient views and analytics modules.
+                    </p>
+
+                    <div class="mt-6 flex flex-wrap gap-4">
+
+                        <a href="/api/v1/measurements/me"
+                           class="rounded-xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-300">
+                            Test API Endpoint
+                        </a>
+
+                        <a href="#"
+                           class="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/30">
+                            Patient Module
+                        </a>
+
+                        <a href="#"
+                           class="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/30">
+                            Wearable Ingestion
+                        </a>
+
+                    </div>
+
+                </div>
+
             </div>
 
-            <div class="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-                <h2 class="text-xl font-semibold">Navigation</h2>
-                <ul class="mt-3 space-y-2 text-cyan-300">
-                    <li><h:link value="Capture" outcome="/app/capture"/></li>
-                    <li rendered="#{userSession.admin}"><h:link value="Admin Dashboard" outcome="/admin/dashboard"/></li>
-                </ul>
+        </main>
+
+        <!-- Footer -->
+
+        <footer class="border-t border-slate-800 bg-slate-900/80">
+
+            <div class="mx-auto max-w-6xl px-6 py-4 text-center text-xs text-slate-500">
+                HealthHub · Jakarta EE · JSF · WildFly · SQL Server
             </div>
-        </div>
+
+        </footer>
+
     </div>
+
 </h:body>
 </html>
