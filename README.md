@@ -172,6 +172,23 @@ http://localhost:18080
 
 ---
 
+# Login Protection
+
+Your login endpoint is protected against common attacks using Traefik middleware.
+
+## Result
+
+Your login is protected against:
+
+| Angriff | Schutz |
+|-------|--------|
+| Bruteforce | rateLimit |
+| Burst Attack | inFlightReq |
+| Credential Stuffing | rateLimit |
+| Bot Spam | rateLimit + inFlightReq |
+
+---
+
 # License
 
 MIT License
