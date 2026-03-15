@@ -36,9 +36,9 @@ public class AuthenticationService {
     private JwtService jwtService;
 
     /**
-     * Web Login (JSF)
+     * Admin Web Login (JSF)
      */
-    public boolean login(String username, String clearTextPassword) {
+    public boolean loginAdmin(String username, String clearTextPassword) {
 
         User user = userRepository.findByUsername(username).orElse(null);
 
@@ -50,16 +50,20 @@ public class AuthenticationService {
             return false;
         }
 
+        boolean isAdmin = user.getRoles().stream()
+                .map(Role::getRoleName)
+                .anyMatch(role -> role == RoleName.ADMIN);
+
+        if (!isAdmin) {
+            return false;
+        }
+
         Set<RoleName> roleNames = user.getRoles().stream()
                 .map(Role::getRoleName)
                 .collect(Collectors.toSet());
 
-        Long patientId = patientRepository.findByUserId(user.getId())
-                .map(Patient::getId)
-                .orElse(null);
-
         LoggedInUser loggedInUser =
-                new LoggedInUser(user.getId(), user.getUsername(), roleNames, patientId);
+                new LoggedInUser(user.getId(), user.getUsername(), roleNames, null);
 
         userSession.login(loggedInUser);
 
@@ -74,9 +78,8 @@ public class AuthenticationService {
     }
 
     /**
-     * API Login (JWT)
+     * API Login (JWT) for Patients
      */
-
     public LoginResponse loginApi(String username, String password) {
 
         User user = userRepository.findByUsername(username).orElse(null);
@@ -109,7 +112,4 @@ public class AuthenticationService {
                 jwtService.getExpirationSeconds()
         );
     }
-
-
-
 }

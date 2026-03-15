@@ -1,6 +1,8 @@
 package de.healthhub.controller.web.security;
 
+import de.healthhub.infrastructure.LoggedInUser;
 import de.healthhub.infrastructure.UserSession;
+import de.healthhub.model.domain.user.RoleName;
 import jakarta.inject.Inject;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,23 +27,50 @@ public class AuthFilter extends HttpFilter {
         String contextPath = request.getContextPath();
         String uri = request.getRequestURI();
 
-        boolean loginPage =
-                uri.equals(contextPath + "/index.xhtml") ||
-                        uri.equals(contextPath + "/");
+        boolean landingPage =
+                uri.equals(contextPath + "/") ||
+                        uri.equals(contextPath + "/index.xhtml");
+
+        boolean adminLoginPage =
+                uri.equals(contextPath + "/admin/login.xhtml");
 
         boolean publicResource =
                 uri.startsWith(contextPath + "/jakarta.faces.resource/");
 
-        boolean loggedIn =
-                userSession != null && userSession.isLoggedIn();
+        boolean adminArea =
+                uri.startsWith(contextPath + "/admin/");
 
-        if (publicResource || loginPage) {
+        LoggedInUser currentUser =
+                userSession != null ? userSession.getCurrentUser() : null;
+
+        boolean loggedIn =
+                currentUser != null;
+
+        boolean isAdmin =
+                loggedIn
+                        && currentUser.getRoles() != null
+                        && currentUser.getRoles().contains(RoleName.ADMIN);
+
+        if (publicResource || landingPage || adminLoginPage) {
             chain.doFilter(request, response);
             return;
         }
 
+        if (adminArea) {
+            if (!loggedIn) {
+                response.sendRedirect(contextPath + "/admin/login.xhtml");
+                return;
+            }
+
+            if (!isAdmin) {
+                userSession.logout();
+                response.sendRedirect(contextPath + "/admin/login.xhtml");
+                return;
+            }
+        }
+
         if (!loggedIn) {
-            response.sendRedirect(contextPath + "/index.xhtml");
+            response.sendRedirect(contextPath + "/admin/login.xhtml");
             return;
         }
 

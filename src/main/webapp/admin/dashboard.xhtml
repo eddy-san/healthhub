@@ -1,32 +1,100 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html">
+
 <h:head>
-    <title>Admin Dashboard</title>
+    <title>HealthHub Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <script src="https://cdn.tailwindcss.com"></script>
 </h:head>
 
 <h:body styleClass="min-h-screen bg-slate-950 text-slate-100">
-    <div class="mx-auto max-w-4xl px-6 py-10">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold">Admin Dashboard</h1>
-                <p class="mt-2 text-slate-400">Angemeldet als #{userSession.username}</p>
-            </div>
-            <h:form>
-                <h:commandButton value="Logout"
-                                 action="#{logoutBean.logout}"
-                                 styleClass="rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold hover:bg-slate-700"/>
-            </h:form>
-        </div>
 
-        <div class="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <p class="text-slate-300">Admin-Rechte aktiv: #{userSession.admin}</p>
-            <div class="mt-4 flex gap-4 text-cyan-300">
-                <h:link value="Frontend Home" outcome="/app/home"/>
-                <h:link value="Users" outcome="/admin/users"/>
+    <div class="min-h-screen">
+        <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+            <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-white">HealthHub Admin</h1>
+                    <p class="text-sm text-slate-400">Administration dashboard</p>
+                </div>
+
+                <h:form>
+                    <h:commandButton value="Logout"
+                                     action="#{loginBean.logout}"
+                                     styleClass="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-red-400 cursor-pointer"/>
+                </h:form>
             </div>
-        </div>
+        </header>
+
+        <main class="mx-auto max-w-6xl px-6 py-8">
+            <div class="grid gap-6 md:grid-cols-3">
+
+                <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl">
+                    <h2 class="text-lg font-semibold text-white">Patients</h2>
+                    <p class="mt-2 text-sm text-slate-400">
+                        Manage patient master data and assignments.
+                    </p>
+                    <div class="mt-5">
+                        <h:link outcome="/admin/patients"
+                                styleClass="inline-flex rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">
+                            Open
+                        </h:link>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl">
+                    <h2 class="text-lg font-semibold text-white">Measurements</h2>
+                    <p class="mt-2 text-sm text-slate-400">
+                        Review recorded wearable measurements and API activity.
+                    </p>
+                    <div class="mt-5">
+                        <h:link outcome="/admin/measurements"
+                                styleClass="inline-flex rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">
+                            Open
+                        </h:link>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl">
+                    <h2 class="text-lg font-semibold text-white">Connectors</h2>
+                    <p class="mt-2 text-sm text-slate-400">
+                        Configure external connectors and integration settings.
+                    </p>
+                    <div class="mt-5">
+                        <h:link outcome="/admin/connectors"
+                                styleClass="inline-flex rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">
+                            Open
+                        </h:link>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-8 rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl">
+                <h2 class="text-xl font-semibold text-white">System Overview</h2>
+                <p class="mt-3 text-sm text-slate-400">
+                    Welcome to the HealthHub administration area. Use the navigation cards above to manage the platform.
+                </p>
+
+                <div class="mt-6 grid gap-4 md:grid-cols-3">
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                        <div class="text-sm text-slate-400">Status</div>
+                        <div class="mt-2 text-lg font-semibold text-green-400">Running</div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                        <div class="text-sm text-slate-400">Access</div>
+                        <div class="mt-2 text-lg font-semibold text-white">Admin only</div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                        <div class="text-sm text-slate-400">API</div>
+                        <div class="mt-2 text-lg font-semibold text-white">JWT protected</div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
+
 </h:body>
 </html>

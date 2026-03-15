@@ -15,7 +15,7 @@ public class LogoutBean {
 
         context.getExternalContext().invalidateSession();
         context.getExternalContext().redirect(
-                context.getExternalContext().getRequestContextPath() + "/index.xhtml"
+                context.getExternalContext().getRequestContextPath() + "/admin/login.xhtml"
         );
         context.responseComplete();
     }

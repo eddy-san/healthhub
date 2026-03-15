@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html">
+
+<h:head>
+    <title>Measurements</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</h:head>
+
+<h:body styleClass="min-h-screen bg-slate-950 text-slate-100">
+
+    <div class="max-w-6xl mx-auto px-6 py-8">
+
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold">Measurements</h1>
+
+            <div class="space-x-3">
+                <h:link outcome="/admin/dashboard.xhtml"
+                        styleClass="px-4 py-2 bg-slate-700 rounded hover:bg-slate-600">
+                    Dashboard
+                </h:link>
+
+                <h:form styleClass="inline">
+                    <h:commandButton value="Logout"
+                                     action="#{loginBean.logout}"
+                                     styleClass="px-4 py-2 bg-red-500 rounded hover:bg-red-400 cursor-pointer"/>
+                </h:form>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+            <p class="text-slate-400">
+                Wearable measurements overview will appear here.
+            </p>
+        </div>
+
+    </div>
+
+</h:body>
+</html>

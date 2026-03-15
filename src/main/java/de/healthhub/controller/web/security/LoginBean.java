@@ -24,36 +24,52 @@ public class LoginBean {
     public String login() {
 
         if (!loginCaptchaBean.isValid(captchaAnswer)) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
+
+            FacesContext.getCurrentInstance().addMessage(
+                    null,
+                    new FacesMessage(
+                            FacesMessage.SEVERITY_ERROR,
                             "Login failed",
-                            "Captcha answer is incorrect."));
+                            "Captcha answer is incorrect."
+                    )
+            );
+
             loginCaptchaBean.refresh();
             captchaAnswer = null;
+
             return null;
         }
 
-        boolean success = authenticationService.login(username, password);
+        boolean success = authenticationService.loginAdmin(username, password);
 
         if (!success) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
+
+            FacesContext.getCurrentInstance().addMessage(
+                    null,
+                    new FacesMessage(
+                            FacesMessage.SEVERITY_ERROR,
                             "Login failed",
-                            "Username or password is incorrect."));
+                            "Username or password is incorrect."
+                    )
+            );
+
             loginCaptchaBean.refresh();
             captchaAnswer = null;
+
             return null;
         }
 
         loginCaptchaBean.refresh();
         captchaAnswer = null;
 
-        return "/app/home.xhtml?faces-redirect=true";
+        return "/admin/dashboard.xhtml?faces-redirect=true";
     }
 
     public String logout() {
+
         authenticationService.logout();
-        return "/index.xhtml?faces-redirect=true";
+
+        return "/admin/login.xhtml?faces-redirect=true";
     }
 
     public String getUsername() {
