@@ -76,31 +76,29 @@ public class AuthenticationService {
     /**
      * API Login (JWT)
      */
+
     public LoginResponse loginApi(String username, String password) {
 
-        System.out.println("API LOGIN username = [" + username + "]");
-
         User user = userRepository.findByUsername(username).orElse(null);
-
-        System.out.println("USER FOUND = " + (user != null));
 
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
 
-        System.out.println("DB USERNAME = [" + user.getUsername() + "]");
-        System.out.println("ENABLED = " + user.isEnabled());
-        System.out.println("HASH = " + user.getPasswordHash());
-
-        boolean match = passwordHasher.matches(password, user.getPasswordHash());
-        System.out.println("PASSWORD MATCH = " + match);
-
         if (!user.isEnabled()) {
             throw new IllegalArgumentException("User disabled");
         }
 
-        if (!match) {
+        if (!passwordHasher.matches(password, user.getPasswordHash())) {
             throw new IllegalArgumentException("Password mismatch");
+        }
+
+        boolean isPatient = user.getRoles().stream()
+                .map(Role::getRoleName)
+                .anyMatch(role -> role == RoleName.PATIENT);
+
+        if (!isPatient) {
+            throw new IllegalArgumentException("API login allowed for PATIENT only");
         }
 
         String token = jwtService.createToken(user);
@@ -111,4 +109,7 @@ public class AuthenticationService {
                 jwtService.getExpirationSeconds()
         );
     }
+
+
+
 }

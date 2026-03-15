@@ -42,43 +42,51 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
 
         String path = requestContext.getUriInfo().getPath();
 
-        // Login offen lassen
+        // Login-Endpunkt frei lassen
         if (path.equals("auth/login") || path.endsWith("/auth/login")) {
             return;
         }
 
         String authHeader = requestContext.getHeaderString("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            requestContext.abortWith(
-                    Response.status(Response.Status.UNAUTHORIZED)
-                            .entity("Missing Authorization header")
-                            .build()
-            );
+        if (authHeader == null || authHeader.isBlank()) {
+            abort(requestContext, Response.Status.UNAUTHORIZED, "Missing Authorization header");
             return;
         }
 
-        String token = authHeader.substring("Bearer ".length());
+        if (!authHeader.startsWith("Bearer ")) {
+            abort(requestContext, Response.Status.UNAUTHORIZED, "Invalid Authorization header");
+            return;
+        }
+
+        String token = authHeader.substring("Bearer ".length()).trim();
+
+        if (token.isEmpty()) {
+            abort(requestContext, Response.Status.UNAUTHORIZED, "Missing bearer token");
+            return;
+        }
 
         if (!jwtService.isValid(token)) {
-            requestContext.abortWith(
-                    Response.status(Response.Status.UNAUTHORIZED)
-                            .entity("Invalid token")
-                            .build()
-            );
+            abort(requestContext, Response.Status.UNAUTHORIZED, "Invalid token");
             return;
         }
 
         String username = jwtService.extractUsername(token);
 
+        if (username == null || username.isBlank()) {
+            abort(requestContext, Response.Status.UNAUTHORIZED, "Invalid token subject");
+            return;
+        }
+
         User user = userRepository.findByUsername(username).orElse(null);
 
-        if (user == null || !user.isEnabled()) {
-            requestContext.abortWith(
-                    Response.status(Response.Status.UNAUTHORIZED)
-                            .entity("Unknown or disabled user")
-                            .build()
-            );
+        if (user == null) {
+            abort(requestContext, Response.Status.UNAUTHORIZED, "User not found");
+            return;
+        }
+
+        if (!user.isEnabled()) {
+            abort(requestContext, Response.Status.UNAUTHORIZED, "User disabled");
             return;
         }
 
@@ -86,13 +94,37 @@ public class JwtAuthenticationFilter implements ContainerRequestFilter {
                 .map(Role::getRoleName)
                 .collect(Collectors.toSet());
 
+        if (!roleNames.contains(RoleName.PATIENT)) {
+            abort(requestContext, Response.Status.FORBIDDEN, "PATIENT role required");
+            return;
+        }
+
         Long patientId = patientRepository.findByUserId(user.getId())
                 .map(Patient::getId)
                 .orElse(null);
 
-        LoggedInUser loggedInUser =
-                new LoggedInUser(user.getId(), user.getUsername(), roleNames, patientId);
+        if (patientId == null) {
+            abort(requestContext, Response.Status.FORBIDDEN, "No patient assigned to user");
+            return;
+        }
+
+        LoggedInUser loggedInUser = new LoggedInUser(
+                user.getId(),
+                user.getUsername(),
+                roleNames,
+                patientId
+        );
 
         apiRequestUser.setLoggedInUser(loggedInUser);
+    }
+
+    private void abort(ContainerRequestContext requestContext,
+                       Response.Status status,
+                       String message) {
+        requestContext.abortWith(
+                Response.status(status)
+                        .entity(message)
+                        .build()
+        );
     }
 }

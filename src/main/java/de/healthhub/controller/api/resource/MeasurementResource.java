@@ -2,6 +2,7 @@ package de.healthhub.controller.api.resource;
 
 import de.healthhub.infrastructure.ApiRequestUser;
 import de.healthhub.infrastructure.LoggedInUser;
+import de.healthhub.model.domain.user.RoleName;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -25,6 +26,12 @@ public class MeasurementResource {
         if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED)
                     .entity(new MeResponse("No authenticated user", null, null, null))
+                    .build();
+        }
+
+        if (!user.getRoles().contains(RoleName.PATIENT)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(new MeResponse("PATIENT role required", null, null, null))
                     .build();
         }
 
