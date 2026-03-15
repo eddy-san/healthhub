@@ -2,6 +2,8 @@
 # HealthHub
 *Open platform for wearable health data integration and digital health analytics.*
 
+🌐 **Live instance:** https://healthhub.roth-it-solutions.de
+
 [![Build](https://github.com/eddy-san/healthhub/actions/workflows/maven.yml/badge.svg)](https://github.com/eddy-san/healthhub/actions/workflows/maven.yml)
 [![Deploy](https://github.com/eddy-san/healthhub/actions/workflows/deploy.yml/badge.svg)](https://github.com/eddy-san/healthhub/actions/workflows/deploy.yml)
 
@@ -28,6 +30,20 @@ HealthHub explores how software platforms can support:
 
 Traditional healthcare systems capture data only at specific timepoints.  
 Wearables enable **continuous longitudinal health data**, closing this gap.
+
+---
+
+# Live Demo
+
+A running instance of the platform is available at:
+
+https://healthhub.roth-it-solutions.de
+
+The landing page provides:
+
+- Admin login
+- API overview
+- system status information
 
 ---
 
@@ -59,9 +75,11 @@ Current functionality
 - Liquibase database migrations
 - Admin user bootstrap
 - JWT authentication for API
+- Admin web interface
 - Dockerized deployment
 - Reverse proxy routing via Traefik
 - GitHub Actions CI/CD pipeline
+- Rate limiting and Fail2Ban protection for login endpoints
 
 ---
 
@@ -73,7 +91,9 @@ POST /api/auth/login
 
 Example curl request
 
-curl -X POST "http://localhost:18080/api/auth/login" -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123!"}'
+curl -X POST "http://localhost:18080/api/auth/login" \
+-H "Content-Type: application/json" \
+-d '{"username":"admin","password":"admin123!"}'
 
 Example response
 
@@ -85,7 +105,8 @@ Example response
 
 Using the token
 
-curl -X GET "http://localhost:18080/api/v1/measurements/me" -H "Authorization: Bearer JWT_TOKEN"
+curl -X GET "http://localhost:18080/api/v1/measurements/me" \
+-H "Authorization: Bearer JWT_TOKEN"
 
 ---
 
@@ -162,18 +183,17 @@ http://localhost:18080
 
 # Login Protection
 
-Your login endpoint is protected against common attacks using Traefik middleware.
+Login endpoints are protected using Traefik middleware.
 
-## Result
+Protection mechanisms:
 
-Your login is protected against:
-
-| Angriff | Schutz |
+| Attack | Protection |
 |-------|--------|
 | Bruteforce | rateLimit |
 | Burst Attack | inFlightReq |
 | Credential Stuffing | rateLimit |
 | Bot Spam | rateLimit + inFlightReq |
+| Automated attacks | Fail2Ban |
 
 ---
 
