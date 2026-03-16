@@ -23,18 +23,21 @@ MSSQL_SA_PASSWORD="$(grep '^MSSQL_SA_PASSWORD=' .env | cut -d '=' -f2- | tr -d '
 COMPOSE_FILE="docker/docker-compose.yml"
 [ -f "$COMPOSE_FILE" ] || fail "$COMPOSE_FILE not found"
 
-echo "[STEP 1] Remove conflicting standalone containers if they exist"
+SQL_VOLUME="docker_mssql_data"
+
+echo "[STEP 1] Stop SQL Server"
+docker compose --env-file .env -f "$COMPOSE_FILE" stop healthhub-sql >/dev/null 2>&1 || true
+
+echo "[STEP 2] Remove standalone SQL container if it exists"
 docker rm -f healthhub-sql >/dev/null 2>&1 || true
-docker rm -f healthhub-app >/dev/null 2>&1 || true
 
-echo "[STEP 2] Stop and remove all containers and volumes"
-docker compose --env-file .env -f "$COMPOSE_FILE" down -v || \
-    echo "WARNING: docker compose down returned a non-zero exit code, continuing..."
+echo "[STEP 3] Remove SQL data volume only"
+docker volume rm "$SQL_VOLUME" >/dev/null 2>&1 || fail "Could not remove SQL volume: $SQL_VOLUME"
 
-echo "[STEP 3] Start SQL Server container"
+echo "[STEP 4] Start SQL Server container"
 docker compose --env-file .env -f "$COMPOSE_FILE" up -d healthhub-sql || fail "Could not start healthhub-sql"
 
-echo "[STEP 4] Wait for SQL Server to become ready"
+echo "[STEP 5] Wait for SQL Server to become ready"
 SQL_READY=false
 
 for i in $(seq 1 40); do
@@ -55,21 +58,21 @@ done
 
 [ "$SQL_READY" = true ] || fail "SQL Server did not become ready in time"
 
-echo "[STEP 5] Configure Java"
+echo "[STEP 6] Configure Java"
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 export PATH="$JAVA_HOME/bin:$PATH"
 
-echo "[STEP 6] Run Liquibase migrations"
+echo "[STEP 7] Run Liquibase migrations"
 ./mvnw -Pupdate-schema "-Ddb.password=$MSSQL_SA_PASSWORD" process-resources || fail "Liquibase migrations failed"
 
-echo "[STEP 7] Start application and CloudBeaver"
-docker compose --env-file .env -f "$COMPOSE_FILE" up -d cloudbeaver || fail "Could not start application services"
-
-Dann wäre die Reihenfolge:
+echo "[STEP 8] Start CloudBeaver"
+docker compose --env-file .env -f "$COMPOSE_FILE" up -d cloudbeaver || fail "Could not start CloudBeaver"
 
 echo
 echo "===================================="
-echo "HealthHub reset completed successfully"
-echo "SQL Server is running and schema is up to date"
+echo "HealthHub hard reset completed successfully"
+echo "SQL data was reset"
+echo "CloudBeaver configuration was preserved"
+echo "SQL Server and CloudBeaver are running"
 echo "===================================="
 echo
