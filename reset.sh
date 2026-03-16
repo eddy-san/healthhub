@@ -62,6 +62,11 @@ export PATH="$JAVA_HOME/bin:$PATH"
 echo "[STEP 6] Run Liquibase migrations"
 ./mvnw -Pupdate-schema "-Ddb.password=$MSSQL_SA_PASSWORD" process-resources || fail "Liquibase migrations failed"
 
+echo "[STEP 7] Start application and CloudBeaver"
+docker compose --env-file .env -f "$COMPOSE_FILE" up -d cloudbeaver || fail "Could not start application services"
+
+Dann wäre die Reihenfolge:
+
 echo
 echo "===================================="
 echo "HealthHub reset completed successfully"
