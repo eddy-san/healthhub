@@ -7,7 +7,7 @@ services:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: ${MSSQL_SA_PASSWORD}
     ports:
-      - "1433:1433"
+      - "127.0.0.1:1433:1433"
     volumes:
       - mssql_data:/var/opt/mssql
     networks:
@@ -38,8 +38,21 @@ services:
       - healthhub_internal
       - traefik_default
 
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: healthhub-cloudbeaver
+    restart: unless-stopped
+    depends_on:
+      - healthhub-sql
+    volumes:
+      - cloudbeaver_data:/opt/cloudbeaver/workspace
+    networks:
+      - healthhub_internal
+      - traefik_default
+
 volumes:
   mssql_data:
+  cloudbeaver_data:
 
 networks:
   healthhub_internal:
