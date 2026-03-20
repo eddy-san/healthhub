@@ -130,13 +130,18 @@
         <subsystem xmlns="urn:jboss:domain:core-management:1.0"/>
         <subsystem xmlns="urn:jboss:domain:datasources:7.2">
             <datasources>
-                <datasource jndi-name="java:/jdbc/HealthHubDS"
-                            pool-name="HealthHubDS"
-                            enabled="true"
-                            use-java-context="true">
+                <datasource jndi-name="java:/jdbc/HealthHubDS" pool-name="HealthHubDS" enabled="true" use-java-context="true">
                     <connection-url>jdbc:sqlserver://healthhub-sql:1433;databaseName=healthhub_db;encrypt=false;trustServerCertificate=true</connection-url>
                     <driver>mssql</driver>
+
                     <security user-name="${env.DB_USER}" password="${env.DB_PASSWORD}"/>
+
+                    <validation>
+                        <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
+                        <validate-on-match>true</validate-on-match>
+                        <background-validation>true</background-validation>
+                        <background-validation-millis>10000</background-validation-millis>
+                    </validation>
                 </datasource>
 
                 <datasource jndi-name="java:jboss/datasources/ExampleDS" pool-name="ExampleDS" enabled="true" use-java-context="true" statistics-enabled="${wildfly.datasources.statistics-enabled:${wildfly.statistics-enabled:false}}">
