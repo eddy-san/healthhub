@@ -48,9 +48,31 @@ The landing page provides:
 
 # Architecture
 
+## High-Level
+
 Browser → Traefik → WildFly → HealthHub → SQL Server
 
-## Infrastructure
+## Modular Architecture
+
+```
+auth/
+measurement/
+health/
+shared/
+```
+
+### Module Structure Rule
+
+-   api → external interface (REST endpoints)
+-   service → business logic
+-   repository → persistence layer
+-   model → data structures
+-   security → authentication & authorization
+
+------------------------------------------------------------------------
+
+
+# Infrastructure
 
 -   🌐 Traefik Reverse Proxy
 -   🐳 Docker Deployment
@@ -96,8 +118,8 @@ Administration modules
 Current API endpoints
 
     POST /api/auth/login
-    POST /api/v1/measurement
-    GET  /api/v1/measurements
+    POST /api/v1/measurements
+    GET  /api/v1/measurements/me
 
 Example login request
 
