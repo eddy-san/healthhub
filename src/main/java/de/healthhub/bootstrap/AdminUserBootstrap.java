@@ -1,11 +1,11 @@
 package de.healthhub.bootstrap;
 
-import de.healthhub.infrastructure.PasswordHasher;
-import de.healthhub.model.domain.user.Role;
-import de.healthhub.model.domain.user.RoleName;
-import de.healthhub.model.domain.user.User;
-import de.healthhub.model.persistence.RoleRepository;
-import de.healthhub.model.persistence.UserRepository;
+import de.healthhub.auth.security.PasswordHasher;
+import de.healthhub.auth.model.Role;
+import de.healthhub.auth.model.RoleName;
+import de.healthhub.auth.model.User;
+import de.healthhub.auth.repository.RoleRepository;
+import de.healthhub.auth.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
