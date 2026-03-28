@@ -1,8 +1,11 @@
 package de.healthhub.auth.api.web;
 
 import jakarta.enterprise.context.RequestScoped;
+import jakarta.faces.context.ExternalContext;
 import jakarta.faces.context.FacesContext;
 import jakarta.inject.Named;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 
@@ -11,12 +14,18 @@ import java.io.IOException;
 public class LogoutBean {
 
     public void logout() throws IOException {
-        FacesContext context = FacesContext.getCurrentInstance();
+        FacesContext facesContext = FacesContext.getCurrentInstance();
+        ExternalContext externalContext = facesContext.getExternalContext();
+        HttpServletRequest request = (HttpServletRequest) externalContext.getRequest();
 
-        context.getExternalContext().invalidateSession();
-        context.getExternalContext().redirect(
-                context.getExternalContext().getRequestContextPath() + "/admin/login.xhtml"
-        );
-        context.responseComplete();
+        try {
+            request.logout();
+        } catch (ServletException e) {
+            throw new IOException("Logout failed", e);
+        }
+
+        externalContext.invalidateSession();
+        externalContext.redirect(externalContext.getRequestContextPath() + "/admin/login.xhtml");
+        facesContext.responseComplete();
     }
 }
