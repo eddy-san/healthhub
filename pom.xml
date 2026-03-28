@@ -21,7 +21,6 @@
         <liquibase.version>4.27.0</liquibase.version>
         <mssql.jdbc.version>12.6.1.jre11</mssql.jdbc.version>
         <microprofile.config.version>3.1</microprofile.config.version>
-        <jjwt.version>0.11.5</jjwt.version>
     </properties>
 
     <dependencies>
@@ -44,26 +43,6 @@
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
             <version>${mssql.jdbc.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>${jjwt.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>${jjwt.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>${jjwt.version}</version>
-            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -94,6 +73,7 @@
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>${liquibase.version}</version>
+
                 <dependencies>
                     <dependency>
                         <groupId>com.microsoft.sqlserver</groupId>
@@ -101,6 +81,7 @@
                         <version>${mssql.jdbc.version}</version>
                     </dependency>
                 </dependencies>
+
                 <configuration>
                     <skip>true</skip>
                 </configuration>
@@ -110,6 +91,7 @@
     </build>
 
     <profiles>
+
         <profile>
             <id>update-schema</id>
 
@@ -125,14 +107,18 @@
 
             <build>
                 <plugins>
+
                     <plugin>
                         <groupId>org.liquibase</groupId>
                         <artifactId>liquibase-maven-plugin</artifactId>
+
                         <configuration>
                             <skip>false</skip>
                             <logLevel>info</logLevel>
                         </configuration>
+
                         <executions>
+
                             <execution>
                                 <id>create-db</id>
                                 <phase>process-resources</phase>
@@ -165,11 +151,15 @@
                                     <defaultSchemaName>dbo</defaultSchemaName>
                                 </configuration>
                             </execution>
+
                         </executions>
                     </plugin>
+
                 </plugins>
             </build>
+
         </profile>
+
     </profiles>
 
 </project>
