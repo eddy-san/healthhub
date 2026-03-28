@@ -20,6 +20,9 @@
 
         <liquibase.version>4.27.0</liquibase.version>
         <mssql.jdbc.version>12.6.1.jre11</mssql.jdbc.version>
+        <microprofile.config.version>3.1</microprofile.config.version>
+        <microprofile.jwt.version>2.1</microprofile.jwt.version>
+        <jjwt.version>0.11.5</jjwt.version>
     </properties>
 
     <dependencies>
@@ -32,11 +35,48 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- MicroProfile Config API -->
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-api</artifactId>
+            <version>${microprofile.config.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- MicroProfile JWT API -->
+        <dependency>
+            <groupId>org.eclipse.microprofile.jwt</groupId>
+            <artifactId>microprofile-jwt-auth-api</artifactId>
+            <version>${microprofile.jwt.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- SQL Server JDBC -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
             <version>${mssql.jdbc.version}</version>
+        </dependency>
+
+        <!-- Legacy JWT helper libs (can be removed later if unused) -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- Tests -->
@@ -45,40 +85,6 @@
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.5</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.microprofile.config</groupId>
-            <artifactId>microprofile-config-api</artifactId>
-            <version>3.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.microprofile.jwt</groupId>
-            <artifactId>microprofile-jwt-auth-api</artifactId>
-            <version>2.1</version>
-            <scope>provided</scope>
         </dependency>
 
     </dependencies>
@@ -104,7 +110,6 @@
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>${liquibase.version}</version>
 
-                <!-- Ensure JDBC driver on plugin classpath -->
                 <dependencies>
                     <dependency>
                         <groupId>com.microsoft.sqlserver</groupId>
@@ -150,7 +155,6 @@
 
                         <executions>
 
-                            <!-- 1) Create DB -->
                             <execution>
                                 <id>create-db</id>
                                 <phase>process-resources</phase>
@@ -167,7 +171,6 @@
                                 </configuration>
                             </execution>
 
-                            <!-- 2) Apply schema -->
                             <execution>
                                 <id>apply-schema</id>
                                 <phase>process-resources</phase>
