@@ -48,7 +48,6 @@
             <groupId>org.eclipse.microprofile.jwt</groupId>
             <artifactId>microprofile-jwt-auth-api</artifactId>
             <version>${microprofile.jwt.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- SQL Server JDBC -->
