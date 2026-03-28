@@ -5,6 +5,7 @@ import de.healthhub.auth.model.RoleName;
 import de.healthhub.auth.model.User;
 import de.healthhub.auth.repository.RoleRepository;
 import de.healthhub.auth.repository.UserRepository;
+import de.healthhub.auth.security.PasswordHasher;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
@@ -20,6 +21,9 @@ public class AdminUserBootstrap {
 
     @Inject
     private RoleRepository roleRepository;
+
+    @Inject
+    private PasswordHasher passwordHasher;
 
     @PostConstruct
     @Transactional
@@ -40,8 +44,9 @@ public class AdminUserBootstrap {
         admin.setEmail(email);
         admin.setEnabled(true);
 
-        // ❌ KEIN Passwort mehr!
-        admin.setPasswordHash(null);
+        // Nur damit die DB-Spalte NOT NULL erfüllt ist.
+        // Auth läuft trotzdem über Keycloak.
+        admin.setPasswordHash(passwordHasher.hash("KEYCLOAK_MANAGED_ACCOUNT"));
 
         admin.addRole(adminRole);
 
