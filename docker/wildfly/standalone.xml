@@ -38,6 +38,7 @@
         <extension module="org.wildfly.extension.request-controller"/>
         <extension module="org.wildfly.extension.security.manager"/>
         <extension module="org.wildfly.extension.undertow"/>
+        <extension module="org.wildfly.extension.elytron-oidc-client"/>
     </extensions>
     <management>
         <audit-log>
