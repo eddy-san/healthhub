@@ -1,10 +1,12 @@
 package de.healthhub.auth.api;
 
-import de.healthhub.auth.api.LoginRequest;
-import de.healthhub.auth.api.LoginResponse;
 import de.healthhub.auth.service.AuthenticationService;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -18,28 +20,14 @@ public class AuthResource {
 
     @POST
     @Path("/login")
-    public Response login(LoginRequest request) {
-
-        try {
-            LoginResponse response =
-                    authenticationService.loginApi(
-                            request.getUsername(),
-                            request.getPassword()
-                    );
-
-            return Response.ok(response).build();
-
-        } catch (Exception e) {
-
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity("Invalid credentials")
-                    .build();
-        }
+    public Response login() {
+        return Response.status(Response.Status.GONE)
+                .entity("""
+                    {"error":"deprecated","message":"API login moved to Keycloak. Use the OpenID Connect token endpoint."}
+                """)
+                .build();
     }
 
-    // ------------------------
-    // LIVE
-    // ------------------------
     @GET
     @Path("/live")
     public Response live() {
@@ -48,13 +36,9 @@ public class AuthResource {
         """).build();
     }
 
-    // ------------------------
-    // READY
-    // ------------------------
     @GET
     @Path("/ready")
     public Response ready() {
-
         try {
             boolean ready = authenticationService.isReady();
 

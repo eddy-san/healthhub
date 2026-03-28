@@ -128,6 +128,18 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:bean-validation:1.0"/>
         <subsystem xmlns="urn:jboss:domain:core-management:1.0"/>
+
+        <subsystem xmlns="urn:wildfly:elytron-oidc-client:1.0">
+            <provider name="keycloak" provider-url="https://auth.roth-it-solutions.de/realms/healthhub"/>
+            <secure-deployment name="ROOT.war"
+                               provider="keycloak"
+                               client-id="healthhub-api"
+                               bearer-only="true"
+                               ssl-required="EXTERNAL"
+                               principal-attribute="preferred_username"
+                               verify-token-audience="true"/>
+        </subsystem>
+
         <subsystem xmlns="urn:jboss:domain:datasources:7.2">
             <datasources>
                 <datasource jndi-name="java:/jdbc/HealthHubDS" pool-name="HealthHubDS" enabled="true" use-java-context="true">

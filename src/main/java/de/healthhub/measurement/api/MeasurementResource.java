@@ -3,10 +3,17 @@ package de.healthhub.measurement.api;
 import de.healthhub.measurement.model.MeasurementCreateRequest;
 import de.healthhub.measurement.model.MeasurementMeResponse;
 import de.healthhub.measurement.service.MeasurementService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 
 @Path("/v1/measurements")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -16,14 +23,12 @@ public class MeasurementResource {
     @Inject
     private MeasurementService measurementService;
 
-    // =========================
-    // POST /api/v1/measurements
-    // =========================
     @POST
-    public Response create(MeasurementCreateRequest request) {
-
+    @RolesAllowed("PATIENT")
+    public Response create(MeasurementCreateRequest request, @Context SecurityContext securityContext) {
         try {
-            measurementService.createMeasurement(request);
+            String username = measurementService.extractUsername(securityContext);
+            measurementService.createMeasurement(username, request);
             return Response.status(Response.Status.CREATED).build();
 
         } catch (IllegalStateException e) {
@@ -43,29 +48,32 @@ public class MeasurementResource {
         }
     }
 
-    // =========================
-    // GET /api/v1/measurements/me
-    // =========================
     @GET
     @Path("/me")
-    public Response me() {
-        MeasurementMeResponse response = measurementService.getCurrentPatientView();
+    @RolesAllowed("PATIENT")
+    public Response me(@Context SecurityContext securityContext) {
+        try {
+            String username = measurementService.extractUsername(securityContext);
+            MeasurementMeResponse response = measurementService.getCurrentPatientView(username);
+            return Response.ok(response).build();
 
-        if (response.error() != null) {
-            Response.Status status = switch (response.error()) {
-                case "No authenticated user" -> Response.Status.UNAUTHORIZED;
-                case "PATIENT role required", "No patient assigned to user" -> Response.Status.FORBIDDEN;
-                default -> Response.Status.BAD_REQUEST;
-            };
-            return Response.status(status).entity(response).build();
+        } catch (IllegalStateException e) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(MeasurementMeResponse.error(e.getMessage()))
+                    .build();
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(MeasurementMeResponse.error(e.getMessage()))
+                    .build();
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(MeasurementMeResponse.error("Failed to resolve current patient"))
+                    .build();
         }
-
-        return Response.ok(response).build();
     }
 
-    // =========================
-    // GET /api/v1/measurements/live
-    // =========================
     @GET
     @Path("/live")
     public Response live() {
@@ -79,13 +87,13 @@ public class MeasurementResource {
     public Response ready() {
         try {
             return Response.ok("""
-            {"status":"UP","check":"ready"}
-        """).build();
+                {"status":"UP","check":"ready"}
+            """).build();
         } catch (Exception e) {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE)
                     .entity("""
-                    {"status":"DOWN","check":"ready"}
-                """)
+                        {"status":"DOWN","check":"ready"}
+                    """)
                     .build();
         }
     }

@@ -1,6 +1,5 @@
 package de.healthhub.bootstrap;
 
-import de.healthhub.auth.security.PasswordHasher;
 import de.healthhub.auth.model.Role;
 import de.healthhub.auth.model.RoleName;
 import de.healthhub.auth.model.User;
@@ -22,14 +21,10 @@ public class AdminUserBootstrap {
     @Inject
     private RoleRepository roleRepository;
 
-    @Inject
-    private PasswordHasher passwordHasher;
-
     @PostConstruct
     @Transactional
     public void init() {
-        String username = getenvOrDefault("ADMIN_USERNAME", "admin");
-        String password = getenvOrDefault("ADMIN_PASSWORD", "admin123!");
+        String username = getenvOrDefault("ADMIN_USERNAME", "eddy.admin");
         String email = getenvOrDefault("ADMIN_EMAIL", "admin@healthhub.local");
 
         if (userRepository.existsByUsername(username)) {
@@ -44,12 +39,15 @@ public class AdminUserBootstrap {
         admin.setUsername(username);
         admin.setEmail(email);
         admin.setEnabled(true);
-        admin.setPasswordHash(passwordHasher.hash(password));
+
+        // ❌ KEIN Passwort mehr!
+        admin.setPasswordHash(null);
+
         admin.addRole(adminRole);
 
         userRepository.save(admin);
 
-        System.out.println("HealthHub bootstrap: admin user created");
+        System.out.println("HealthHub bootstrap: admin user created (Keycloak-managed)");
     }
 
     private String getenvOrDefault(String key, String defaultValue) {

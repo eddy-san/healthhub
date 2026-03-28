@@ -46,4 +46,17 @@ public class PatientRepository {
 
         return result.stream().findFirst();
     }
+
+    public Optional<Patient> findByUsername(String username) {
+        List<Patient> result = em.createQuery(
+                        "select p from Patient p " +
+                                "join fetch p.user u " +
+                                "left join fetch u.roles " +
+                                "where u.username = :username",
+                        Patient.class)
+                .setParameter("username", username)
+                .getResultList();
+
+        return result.stream().findFirst();
+    }
 }

@@ -25,6 +25,14 @@
         <url-pattern>*.xhtml</url-pattern>
     </filter-mapping>
 
+    <security-role>
+        <role-name>PATIENT</role-name>
+    </security-role>
+
+    <security-role>
+        <role-name>ADMIN</role-name>
+    </security-role>
+
     <welcome-file-list>
         <welcome-file>index.xhtml</welcome-file>
     </welcome-file-list>
