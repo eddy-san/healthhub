@@ -376,7 +376,7 @@
             </policy>
         </subsystem>
         <subsystem xmlns="urn:wildfly:elytron-oidc-client:1.0">
-            <provider name="keycloak" provider-url="https://auth.roth-it-solutions.de/realms/healthhub"/>
+            <provider name="keycloak" provider-url="http://healthhub-keycloak:8080/realms/healthhub"/>
             <secure-deployment name="ROOT.war"
                                provider="keycloak"
                                client-id="healthhub-api"
