@@ -29,7 +29,10 @@ public class PatientRepository {
 
     public Optional<Patient> findByPatientNumber(String patientNumber) {
         List<Patient> result = em.createQuery(
-                        "select p from Patient p join fetch p.user u left join fetch u.roles where p.patientNumber = :patientNumber",
+                        "select distinct p from Patient p " +
+                                "join fetch p.user " +
+                                "left join fetch p.user.roles " +
+                                "where p.patientNumber = :patientNumber",
                         Patient.class)
                 .setParameter("patientNumber", patientNumber)
                 .getResultList();
@@ -49,10 +52,10 @@ public class PatientRepository {
 
     public Optional<Patient> findByUsername(String username) {
         List<Patient> result = em.createQuery(
-                        "select p from Patient p " +
-                                "join fetch p.user u " +
-                                "left join fetch u.roles " +
-                                "where u.username = :username",
+                        "select distinct p from Patient p " +
+                                "join fetch p.user " +
+                                "left join fetch p.user.roles " +
+                                "where p.user.username = :username",
                         Patient.class)
                 .setParameter("username", username)
                 .getResultList();
