@@ -65,6 +65,8 @@ public class AdminUserBootstrap {
     private void createPatient() {
         String username = getenvOrDefault("PATIENT_USERNAME", "eddy.patient");
         String email = getenvOrDefault("PATIENT_EMAIL", "patient@healthhub.local");
+        String firstName = getenvOrDefault("PATIENT_FIRST_NAME", "Eduard");
+        String lastName = getenvOrDefault("PATIENT_LAST_NAME", "Roth");
 
         if (userRepository.existsByUsername(username)) {
             System.out.println("HealthHub bootstrap: patient user already exists");
@@ -83,10 +85,11 @@ public class AdminUserBootstrap {
 
         userRepository.save(user);
 
-        // 👇 Patient-Entity erzeugen
         Patient patient = new Patient();
         patient.setUser(user);
         patient.setPatientNumber("P-" + System.currentTimeMillis());
+        patient.setFirstName(firstName);
+        patient.setLastName(lastName);
 
         patientRepository.save(patient);
 
