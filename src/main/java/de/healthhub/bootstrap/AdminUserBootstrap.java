@@ -8,7 +8,6 @@ import de.healthhub.auth.repository.UserRepository;
 import de.healthhub.auth.security.PasswordHasher;
 import de.healthhub.measurement.model.Patient;
 import de.healthhub.measurement.repository.PatientRepository;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;

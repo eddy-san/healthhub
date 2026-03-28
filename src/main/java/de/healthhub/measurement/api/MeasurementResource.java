@@ -10,10 +10,8 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 
 @Path("/v1/measurements")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -25,9 +23,9 @@ public class MeasurementResource {
 
     @POST
     @RolesAllowed("PATIENT")
-    public Response create(MeasurementCreateRequest request, @Context SecurityContext securityContext) {
+    public Response create(MeasurementCreateRequest request) {
         try {
-            String username = measurementService.extractUsername(securityContext);
+            String username = measurementService.extractUsername();
             measurementService.createMeasurement(username, request);
             return Response.status(Response.Status.CREATED).build();
 
@@ -42,6 +40,7 @@ public class MeasurementResource {
                     .build();
 
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("Failed to create measurement")
                     .build();
@@ -51,9 +50,9 @@ public class MeasurementResource {
     @GET
     @Path("/me")
     @RolesAllowed("PATIENT")
-    public Response me(@Context SecurityContext securityContext) {
+    public Response me() {
         try {
-            String username = measurementService.extractUsername(securityContext);
+            String username = measurementService.extractUsername();
             MeasurementMeResponse response = measurementService.getCurrentPatientView(username);
             return Response.ok(response).build();
 
@@ -68,8 +67,9 @@ public class MeasurementResource {
                     .build();
 
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(MeasurementMeResponse.error("Failed to resolve current patient"))
+                    .entity(MeasurementMeResponse.error(e.getMessage()))
                     .build();
         }
     }
@@ -85,16 +85,8 @@ public class MeasurementResource {
     @GET
     @Path("/ready")
     public Response ready() {
-        try {
-            return Response.ok("""
-                {"status":"UP","check":"ready"}
-            """).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                    .entity("""
-                        {"status":"DOWN","check":"ready"}
-                    """)
-                    .build();
-        }
+        return Response.ok("""
+            {"status":"UP","check":"ready"}
+        """).build();
     }
 }

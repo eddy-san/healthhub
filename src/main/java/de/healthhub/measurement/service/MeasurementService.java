@@ -10,9 +10,8 @@ import de.healthhub.measurement.model.Patient;
 import de.healthhub.measurement.repository.PatientRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
-import java.security.Principal;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,26 +24,35 @@ public class MeasurementService {
     @Inject
     private PatientRepository patientRepository;
 
-    public String extractUsername(SecurityContext securityContext) {
-        if (securityContext == null) {
-            throw new IllegalStateException("No security context");
+    @Inject
+    private JsonWebToken jsonWebToken;
+
+    public String extractUsername() {
+        String username = jsonWebToken.getClaim("preferred_username");
+
+        System.out.println("HealthHub debug JWT preferred_username = " + username);
+        System.out.println("HealthHub debug JWT subject = " + jsonWebToken.getSubject());
+        System.out.println("HealthHub debug JWT name = " + jsonWebToken.getName());
+        System.out.println("HealthHub debug JWT groups = " + jsonWebToken.getGroups());
+
+        if (username == null || username.isBlank()) {
+            throw new IllegalStateException("No username in token");
         }
 
-        Principal principal = securityContext.getUserPrincipal();
-
-        if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
-            throw new IllegalStateException("No authenticated user");
-        }
-
-        return principal.getName();
+        return username;
     }
 
     public MeasurementMeResponse getCurrentPatientView(String username) {
+        System.out.println("HealthHub debug getCurrentPatientView username = " + username);
+
         User user = loadEnabledUser(username);
 
         Set<RoleName> roleNames = user.getRoles().stream()
                 .map(Role::getRoleName)
                 .collect(Collectors.toSet());
+
+        System.out.println("HealthHub debug user found id = " + user.getId());
+        System.out.println("HealthHub debug role names = " + roleNames);
 
         if (!roleNames.contains(RoleName.PATIENT)) {
             throw new IllegalArgumentException("PATIENT role required");
@@ -52,6 +60,8 @@ public class MeasurementService {
 
         Patient patient = patientRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("No patient assigned to user"));
+
+        System.out.println("HealthHub debug patient found id = " + patient.getId());
 
         return MeasurementMeResponse.success(
                 user.getUsername(),
@@ -72,7 +82,7 @@ public class MeasurementService {
             throw new IllegalArgumentException("PATIENT role required");
         }
 
-        Patient patient = patientRepository.findByUsername(username)
+        patientRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("No patient assigned to user"));
 
         if (request == null) {
@@ -86,12 +96,6 @@ public class MeasurementService {
         if (request.value() == null) {
             throw new IllegalArgumentException("Measurement value is required");
         }
-
-        // TODO:
-        // Persistierung ergänzen:
-        // - MeasurementEntity erzeugen
-        // - patient.getId() setzen
-        // - request.type(), request.value(), request.unit(), request.timestamp() speichern
     }
 
     private User loadEnabledUser(String username) {

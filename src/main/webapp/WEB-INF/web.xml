@@ -33,7 +33,6 @@
         <role-name>ADMIN</role-name>
     </security-role>
 
-    <!-- REST API unter Container-Security -->
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Protected API</web-resource-name>
@@ -46,7 +45,6 @@
         </auth-constraint>
     </security-constraint>
 
-    <!-- Öffentliche Health-Endpunkte -->
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Public Health</web-resource-name>
@@ -54,7 +52,6 @@
         </web-resource-collection>
     </security-constraint>
 
-    <!-- Optional öffentlich für Legacy-Checks -->
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Public Auth Health</web-resource-name>
