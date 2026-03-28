@@ -384,7 +384,7 @@
                                ssl-required="EXTERNAL"
                                principal-attribute="preferred_username"
                                verify-token-audience="false"
-                               role-claim-path="groups"/>
+                               use-resource-role-mappings="true"/>
         </subsystem>
         <subsystem xmlns="urn:wildfly:health:1.0" security-enabled="false"/>
         <subsystem xmlns="urn:jboss:domain:infinispan:15.0">
