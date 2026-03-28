@@ -379,8 +379,8 @@
             <provider name="keycloak" provider-url="https://auth.roth-it-solutions.de/realms/healthhub"/>
             <secure-deployment name="ROOT.war"
                                provider="keycloak"
-                               client-id="healthhub-api"
-                               bearer-only="true"
+                               client-id="healthhub-web"
+                               bearer-only="false"
                                ssl-required="EXTERNAL"
                                principal-attribute="preferred_username"
                                verify-token-audience="true"/>

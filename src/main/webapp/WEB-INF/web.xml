@@ -23,14 +23,19 @@
         <role-name>ADMIN</role-name>
     </security-role>
 
+    <!-- Public login page -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Public Admin Login</web-resource-name>
+            <url-pattern>/admin/login.xhtml</url-pattern>
+        </web-resource-collection>
+    </security-constraint>
+
     <!-- Protected admin pages via Keycloak / OIDC -->
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Protected Admin Pages</web-resource-name>
-            <url-pattern>/admin/dashboard.xhtml</url-pattern>
-            <url-pattern>/admin/patients.xhtml</url-pattern>
-            <url-pattern>/admin/measurements.xhtml</url-pattern>
-            <url-pattern>/admin/connectors.xhtml</url-pattern>
+            <url-pattern>/admin/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>ADMIN</role-name>
