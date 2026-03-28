@@ -10,8 +10,10 @@ import de.healthhub.measurement.model.Patient;
 import de.healthhub.measurement.repository.PatientRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.jwt.JsonWebToken;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.SecurityContext;
 
+import java.security.Principal;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,22 +26,36 @@ public class MeasurementService {
     @Inject
     private PatientRepository patientRepository;
 
-    @Inject
-    private JsonWebToken jsonWebToken;
-
-    public String extractUsername() {
-        String username = jsonWebToken.getClaim("preferred_username");
-
-        System.out.println("HealthHub debug JWT preferred_username = " + username);
-        System.out.println("HealthHub debug JWT subject = " + jsonWebToken.getSubject());
-        System.out.println("HealthHub debug JWT name = " + jsonWebToken.getName());
-        System.out.println("HealthHub debug JWT groups = " + jsonWebToken.getGroups());
-
-        if (username == null || username.isBlank()) {
-            throw new IllegalStateException("No username in token");
+    public String extractUsername(SecurityContext securityContext, HttpServletRequest httpRequest) {
+        if (securityContext != null) {
+            Principal principal = securityContext.getUserPrincipal();
+            if (principal != null) {
+                System.out.println("HealthHub debug securityContext principal = " + principal.getName());
+                if (principal.getName() != null && !principal.getName().isBlank()) {
+                    return principal.getName();
+                }
+            } else {
+                System.out.println("HealthHub debug securityContext principal = null");
+            }
+        } else {
+            System.out.println("HealthHub debug securityContext = null");
         }
 
-        return username;
+        if (httpRequest != null) {
+            Principal principal = httpRequest.getUserPrincipal();
+            if (principal != null) {
+                System.out.println("HealthHub debug httpRequest principal = " + principal.getName());
+                if (principal.getName() != null && !principal.getName().isBlank()) {
+                    return principal.getName();
+                }
+            } else {
+                System.out.println("HealthHub debug httpRequest principal = null");
+            }
+        } else {
+            System.out.println("HealthHub debug httpRequest = null");
+        }
+
+        throw new IllegalStateException("No authenticated user");
     }
 
     public MeasurementMeResponse getCurrentPatientView(String username) {

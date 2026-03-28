@@ -21,13 +21,11 @@
         <liquibase.version>4.27.0</liquibase.version>
         <mssql.jdbc.version>12.6.1.jre11</mssql.jdbc.version>
         <microprofile.config.version>3.1</microprofile.config.version>
-        <microprofile.jwt.version>2.1</microprofile.jwt.version>
         <jjwt.version>0.11.5</jjwt.version>
     </properties>
 
     <dependencies>
 
-        <!-- Provided by WildFly -->
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>
@@ -35,7 +33,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- MicroProfile Config API -->
         <dependency>
             <groupId>org.eclipse.microprofile.config</groupId>
             <artifactId>microprofile-config-api</artifactId>
@@ -43,21 +40,12 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- MicroProfile JWT API -->
-        <dependency>
-            <groupId>org.eclipse.microprofile.jwt</groupId>
-            <artifactId>microprofile-jwt-auth-api</artifactId>
-            <version>${microprofile.jwt.version}</version>
-        </dependency>
-
-        <!-- SQL Server JDBC -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
             <version>${mssql.jdbc.version}</version>
         </dependency>
 
-        <!-- Legacy JWT helper libs (can be removed later if unused) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -78,7 +66,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -103,12 +90,10 @@
                 <version>3.5.2</version>
             </plugin>
 
-            <!-- Liquibase plugin (default skipped) -->
             <plugin>
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>${liquibase.version}</version>
-
                 <dependencies>
                     <dependency>
                         <groupId>com.microsoft.sqlserver</groupId>
@@ -116,7 +101,6 @@
                         <version>${mssql.jdbc.version}</version>
                     </dependency>
                 </dependencies>
-
                 <configuration>
                     <skip>true</skip>
                 </configuration>
@@ -126,7 +110,6 @@
     </build>
 
     <profiles>
-
         <profile>
             <id>update-schema</id>
 
@@ -142,18 +125,14 @@
 
             <build>
                 <plugins>
-
                     <plugin>
                         <groupId>org.liquibase</groupId>
                         <artifactId>liquibase-maven-plugin</artifactId>
-
                         <configuration>
                             <skip>false</skip>
                             <logLevel>info</logLevel>
                         </configuration>
-
                         <executions>
-
                             <execution>
                                 <id>create-db</id>
                                 <phase>process-resources</phase>
@@ -186,15 +165,11 @@
                                     <defaultSchemaName>dbo</defaultSchemaName>
                                 </configuration>
                             </execution>
-
                         </executions>
                     </plugin>
-
                 </plugins>
             </build>
-
         </profile>
-
     </profiles>
 
 </project>
