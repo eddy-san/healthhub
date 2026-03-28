@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-web>
+    <context-root>/</context-root>
+
+    <security-role>
+        <role-name>ADMIN</role-name>
+        <principal-name>ADMIN</principal-name>
+    </security-role>
+
+    <security-role>
+        <role-name>PATIENT</role-name>
+        <principal-name>PATIENT</principal-name>
+    </security-role>
+</jboss-web>
