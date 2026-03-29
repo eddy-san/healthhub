@@ -4,8 +4,10 @@ import de.healthhub.auth.model.User;
 import de.healthhub.auth.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 @ApplicationScoped
+@Transactional
 public class UserProvisioningService {
 
     @Inject
@@ -46,5 +48,4 @@ public class UserProvisioningService {
 
         return user;
     }
-
 }
