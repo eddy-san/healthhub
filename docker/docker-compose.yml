@@ -38,6 +38,7 @@ services:
       DB_HOST: healthhub-sql
       DB_PORT: 1433
       DB_NAME: healthhub_db
+      HEALTHHUB_WEB_CLIENT_SECRET: ${HEALTHHUB_WEB_CLIENT_SECRET}
     ports:
       - "127.0.0.1:18080:8080"
     networks:
