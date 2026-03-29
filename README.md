@@ -5,7 +5,7 @@ health data and wearable devices**.
 
 🌐 **Live instance:** https://healthhub.roth-it-solutions.de
 
-![JakartaEE](https://img.shields.io/badge/JakartaEE-10-orange)
+![JakartaEE](https://img.shields.io/badge/JakartaEE-10+-orange)
 ![WildFly](https://img.shields.io/badge/WildFly-Application%20Server-red)
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-Database-blue)
 ![Liquibase](https://img.shields.io/badge/Liquibase-DB%20Migration-green)
@@ -54,12 +54,10 @@ Browser → Traefik → WildFly → HealthHub → SQL Server
 
 ## Modular Architecture
 
-```
-auth/
-measurement/
-health/
-shared/
-```
+    auth/
+    measurement/
+    health/
+    shared/
 
 ### Module Structure Rule
 
@@ -70,7 +68,6 @@ shared/
 -   security → authentication & authorization
 
 ------------------------------------------------------------------------
-
 
 # Infrastructure
 
@@ -87,12 +84,13 @@ shared/
 
 HealthHub applies multiple layers of protection.
 
--   🔐 Admin Session Login
--   🔐 JWT API Login
--   🚫 Role Separation (ADMIN / PATIENT)
--   🛡 Traefik RateLimit
--   🛡 Traefik Fail2Ban
--   🧱 AuthFilter for `/admin` routes
+-   🔐 OpenID Connect (OIDC) via Keycloak
+-   🔁 Authorization Code Flow (confidential client)
+-   🎟 JWT access tokens (RS256 signed)
+-   🔍 Role-based access control (RBAC)
+-   🧱 Server-side enforcement via WildFly Elytron OIDC
+-   🌐 TLS termination via Traefik (Let's Encrypt)
+-   🛡 Layered defense (RateLimit, Fail2Ban)
 
 ------------------------------------------------------------------------
 
@@ -115,34 +113,81 @@ Administration modules
 
 # API
 
-Current API endpoints
+HealthHub uses **Keycloak (OIDC)** for authentication.\
+API access is secured via **JWT access tokens**.
 
-    POST /api/auth/login
-    POST /api/v1/measurements
-    GET  /api/v1/measurements/me
+## Authentication
 
-Example login request
+-   Browser-based clients use the Authorization Code Flow
+-   Machine-to-machine or device integrations may use alternative flows
+    (e.g. client credentials or token exchange)
 
-    POST /api/auth/login
+Example token endpoint:
 
-Example curl request
+POST
+https://auth.roth-it-solutions.de/realms/healthhub/protocol/openid-connect/token
 
-    curl -X POST "http://localhost:18080/api/auth/login" \
-    -H "Content-Type: application/json" \
-    -d '{"username":"admin","password":"admin123!"}'
+------------------------------------------------------------------------
 
-Example response
+## Endpoints
 
-    {
-      "token": "JWT_TOKEN",
-      "tokenType": "Bearer",
-      "expiresIn": 3600
-    }
+POST /api/v1/measurements\
+GET /api/v1/measurements/me
 
-Using the token
+------------------------------------------------------------------------
 
-    curl -X GET "http://localhost:18080/api/v1/measurements/me" \
-    -H "Authorization: Bearer JWT_TOKEN"
+## Authorization
+
+All API endpoints require a valid JWT access token:
+
+-   Role `PATIENT` → allowed to submit and read own measurements
+-   Role `ADMIN` → full access (administration, monitoring)
+
+------------------------------------------------------------------------
+
+## Example Request
+
+``` bash
+curl -X GET "https://healthhub.roth-it-solutions.de/api/v1/measurements/me"   -H "Authorization: Bearer ACCESS_TOKEN"
+```
+
+------------------------------------------------------------------------
+
+## Example Measurement Upload
+
+``` bash
+curl -X POST "https://healthhub.roth-it-solutions.de/api/v1/measurements"   -H "Authorization: Bearer ACCESS_TOKEN"   -H "Content-Type: application/json"   -d '{
+    "type": "heart_rate",
+    "value": 72,
+    "timestamp": "2026-03-29T10:00:00Z"
+  }'
+```
+
+------------------------------------------------------------------------
+
+## Security Model
+
+-   JWT access tokens (issued and signed by Keycloak) are validated by
+    WildFly (Elytron OIDC)
+-   Roles are extracted from the token (via Keycloak role mappings)
+-   Access control is enforced via `@RolesAllowed`
+
+## Trust Model
+
+-   Identity Provider: Keycloak
+-   Resource Server: WildFly (HealthHub)
+-   Reverse Proxy: Traefik (TLS termination)
+-   Backend: SQL Server (internal network)
+
+All trust boundaries are enforced via TLS and token validation.
+
+------------------------------------------------------------------------
+
+## Notes
+
+-   No custom login endpoint is implemented in HealthHub
+-   Authentication is fully delegated to Keycloak
+-   API is stateless and does not use server-side sessions
 
 ------------------------------------------------------------------------
 
@@ -170,18 +215,18 @@ Infrastructure features
 
 # Login Protection
 
-Login endpoints are protected using Traefik middleware.
+Authentication endpoints (Keycloak) and public entry points are
+protected using Traefik middleware.
 
 Protection mechanisms:
 
-| Attack | Protection |
-|------|------------|
-| Bruteforce | rateLimit |
-| Burst Attack | inFlightReq |
-| Credential Stuffing | rateLimit |
-| Bot Spam | rateLimit + inFlightReq |
-| Automated attacks | Fail2Ban |
-
+| Attack              | Protection                  |
+|---------------------|-----------------------------|
+| Bruteforce          | rateLimit                   |
+| Burst Attack        | inFlightReq                 |
+| Credential Stuffing | rateLimit                   |
+| Bot Spam            | rateLimit + inFlightReq     |
+| Automated attacks   | Fail2Ban                    |
 
 ------------------------------------------------------------------------
 
@@ -247,13 +292,9 @@ MIT License
 
 Eduard Roth
 
-
 ------------------------------------------------------------------------
-
 
 # Build and deploy status
 
 [![Build](https://github.com/eddy-san/healthhub/actions/workflows/maven.yml/badge.svg)](https://github.com/eddy-san/healthhub/actions/workflows/maven.yml)
 [![Deploy](https://github.com/eddy-san/healthhub/actions/workflows/deploy.yml/badge.svg)](https://github.com/eddy-san/healthhub/actions/workflows/deploy.yml)
-
-
