@@ -14,7 +14,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 
 @Path("/v1/measurements")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -22,19 +21,16 @@ import jakarta.ws.rs.core.SecurityContext;
 public class MeasurementResource {
 
     @Inject
-    private MeasurementService measurementService;
+    MeasurementService measurementService;
 
     @Context
-    private SecurityContext securityContext;
-
-    @Context
-    private HttpServletRequest httpRequest;
+    HttpServletRequest httpRequest;
 
     @POST
     @RolesAllowed("PATIENT")
     public Response create(MeasurementCreateRequest request) {
         try {
-            measurementService.createMeasurement(securityContext, httpRequest, request);
+            measurementService.createMeasurement(httpRequest, request);
             return Response.status(Response.Status.CREATED).build();
 
         } catch (IllegalStateException e) {
@@ -60,9 +56,7 @@ public class MeasurementResource {
     @RolesAllowed("PATIENT")
     public Response me() {
         try {
-            MeasurementMeResponse response =
-                    measurementService.getCurrentPatientView(securityContext, httpRequest);
-
+            MeasurementMeResponse response = measurementService.getCurrentPatientView(httpRequest);
             return Response.ok(response).build();
 
         } catch (IllegalStateException e) {

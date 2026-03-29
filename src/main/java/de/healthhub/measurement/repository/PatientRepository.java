@@ -31,6 +31,7 @@ public class PatientRepository {
         List<Patient> result = em.createQuery(
                         "select distinct p from Patient p " +
                                 "join fetch p.user " +
+                                "left join fetch p.user.roles " +
                                 "where p.patientNumber = :patientNumber",
                         Patient.class)
                 .setParameter("patientNumber", patientNumber)
@@ -41,7 +42,9 @@ public class PatientRepository {
 
     public Optional<Patient> findByUserId(Long userId) {
         List<Patient> result = em.createQuery(
-                        "select p from Patient p " +
+                        "select distinct p from Patient p " +
+                                "join fetch p.user " +
+                                "left join fetch p.user.roles " +
                                 "where p.user.id = :userId",
                         Patient.class)
                 .setParameter("userId", userId)
