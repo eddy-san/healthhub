@@ -18,21 +18,17 @@ public class LogoutBean {
         ExternalContext externalContext = facesContext.getExternalContext();
         HttpServletRequest request = (HttpServletRequest) externalContext.getRequest();
 
-        // Keycloak Logout Endpoint
         String keycloakLogoutUrl =
                 "https://auth.roth-it-solutions.de/realms/healthhub/protocol/openid-connect/logout" +
-                        "?post_logout_redirect_uri=" +
-                        externalContext.encodeRedirectURL("https://healthhub.roth-it-solutions.de");
+                        "?post_logout_redirect_uri=https://healthhub.roth-it-solutions.de";
 
         try {
-            request.logout(); // WildFly logout
+            request.logout();
         } catch (ServletException e) {
             throw new IOException("Logout failed", e);
         }
 
         externalContext.invalidateSession();
-
-        // Redirect zu Keycloak Logout
         externalContext.redirect(keycloakLogoutUrl);
         facesContext.responseComplete();
     }
