@@ -23,14 +23,32 @@ public class OidcWebIdentityService {
             throw new IllegalStateException("No authenticated OIDC user");
         }
 
-        String subject = principal.getName();
-        if (subject == null || subject.isBlank()) {
+        String subject = normalize(principal.getName());
+        if (subject == null) {
             throw new IllegalStateException("OIDC principal name is empty");
         }
 
-        String username = request.getRemoteUser();
+        String username = normalize(request.getRemoteUser());
+
+        if (username == null) {
+            username = subject;
+        }
+
         String email = null;
 
+        System.out.println("HealthHub OIDC subject=" + subject);
+        System.out.println("HealthHub OIDC username=" + username);
+        System.out.println("HealthHub OIDC email=" + email);
+
         return userProvisioningService.getOrCreateExternalUser(subject, username, email);
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

@@ -29,6 +29,11 @@ public class UserProvisioningService {
 
         String subject = extractSubject(request, principal);
         String username = extractUsername(request, principal);
+
+        if (username == null || username.isBlank()) {
+            username = subject;
+        }
+        
         String email = extractEmail(request);
 
         return getOrCreateExternalUser(subject, username, email);
