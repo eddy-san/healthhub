@@ -37,22 +37,13 @@ public class UserRepository {
         return result.stream().findFirst();
     }
 
-    public boolean existsByKeycloakSubject(String subject) {
-        Long count = em.createQuery(
-                        "select count(u) from User u where u.keycloakSubject = :subject",
-                        Long.class)
-                .setParameter("subject", subject)
-                .getSingleResult();
-
-        return count > 0;
-    }
-
-    public List<User> findAll() {
-        return em.createQuery("select u from User u", User.class)
+    public Optional<User> findByUsername(String username) {
+        List<User> result = em.createQuery(
+                        "select u from User u where u.username = :username",
+                        User.class)
+                .setParameter("username", username)
                 .getResultList();
-    }
 
-    public void delete(User user) {
-        em.remove(em.contains(user) ? user : em.merge(user));
+        return result.stream().findFirst();
     }
 }
