@@ -375,6 +375,7 @@
                 <jacc-policy/>
             </policy>
         </subsystem>
+
         <subsystem xmlns="urn:wildfly:elytron-oidc-client:2.0">
             <provider name="keycloak" provider-url="https://auth.roth-it-solutions.de/realms/healthhub"/>
             <secure-deployment name="ROOT.war"
@@ -384,8 +385,12 @@
                                ssl-required="EXTERNAL"
                                principal-attribute="preferred_username"
                                verify-token-audience="false"
-                               use-resource-role-mappings="true"/>
+                               use-resource-role-mappings="true">
+                <credential name="secret" secret="${env.HEALTHHUB_WEB_CLIENT_SECRET}"/>
+            </secure-deployment>
         </subsystem>
+
+
         <subsystem xmlns="urn:wildfly:health:1.0" security-enabled="false"/>
         <subsystem xmlns="urn:jboss:domain:infinispan:15.0">
             <cache-container name="hibernate" modules="org.infinispan.hibernate-cache" marshaller="JBOSS">
