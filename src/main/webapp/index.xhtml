@@ -44,8 +44,6 @@
                                     Public Endpoints
                                 </div>
                                 <div class="space-y-1 text-slate-300">
-                                    <div>GET /api/v1/measurements/live</div>
-                                    <div>GET /api/v1/measurements/ready</div>
                                     <div>GET /api/health/live</div>
                                     <div>GET /api/health/ready</div>
                                 </div>
@@ -74,14 +72,6 @@
                         <div class="flex items-center justify-between">
                             <span>Keycloak</span>
                             <span id="keycloak-status" class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></span>
-                                checking...
-                            </span>
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <span>Measurement API</span>
-                            <span id="measurement-status" class="flex items-center gap-2">
                                 <span class="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></span>
                                 checking...
                             </span>
@@ -163,7 +153,6 @@
                 'https://auth.roth-it-solutions.de/realms/healthhub/.well-known/openid-configuration',
                 'keycloak-status'
             );
-            checkHealthJson('/api/v1/measurements/live', 'measurement-status');
             checkHealthJson('/api/health/live', 'health-status');
         }
 
