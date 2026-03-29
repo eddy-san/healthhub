@@ -10,7 +10,7 @@
 
 <h:body styleClass="min-h-screen bg-slate-950 text-slate-100">
     <div class="min-h-screen flex items-center justify-center px-4">
-        <div class="w-full max-w-3xl">
+        <div class="w-full max-w-4xl">
             <div class="rounded-2xl border border-slate-800 bg-slate-900/80 shadow-2xl backdrop-blur p-8 md:p-10">
                 <h1 class="text-4xl font-bold tracking-tight text-white">HealthHub</h1>
                 <p class="mt-3 text-slate-400">
@@ -22,7 +22,7 @@
                     <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-6">
                         <h2 class="text-xl font-semibold text-white">Administration</h2>
                         <p class="mt-2 text-sm text-slate-400">
-                            Access the secured administration area.
+                            Access the secured administration area via Keycloak.
                         </p>
                         <div class="mt-5">
                             <h:link outcome="/admin/login.xhtml"
@@ -37,16 +37,29 @@
                         <p class="mt-2 text-sm text-slate-400">
                             Patient devices connect via the JWT-protected API.
                         </p>
-                        <div class="mt-4 rounded-xl bg-slate-900 p-4 text-sm text-slate-300 space-y-1">
-                            <div>POST /api/auth/login</div>
-                            <div>GET /api/auth/live</div>
-                            <div>GET /api/auth/ready</div>
-                            <div>POST /api/v1/measurements</div>
-                            <div>GET /api/v1/measurements/me</div>
-                            <div>GET /api/v1/measurements/live</div>
-                            <div>GET /api/v1/measurements/ready</div>
-                            <div>GET /api/health/live</div>
-                            <div>GET /api/health/ready</div>
+
+                        <div class="mt-4 space-y-4 text-sm">
+                            <div class="rounded-xl bg-slate-900 p-4">
+                                <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    Public Endpoints
+                                </div>
+                                <div class="space-y-1 text-slate-300">
+                                    <div>GET /api/v1/measurements/live</div>
+                                    <div>GET /api/v1/measurements/ready</div>
+                                    <div>GET /api/health/live</div>
+                                    <div>GET /api/health/ready</div>
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl bg-slate-900 p-4">
+                                <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    Protected Endpoints
+                                </div>
+                                <div class="space-y-1 text-slate-300">
+                                    <div>POST /api/v1/measurements</div>
+                                    <div>GET /api/v1/measurements/me</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -54,20 +67,20 @@
                 <div class="mt-8 rounded-xl border border-slate-800 bg-slate-950/60 p-6">
                     <h2 class="text-xl font-semibold text-white">System Status</h2>
                     <p class="mt-2 text-sm text-slate-400 mb-4">
-                        Live status of core modules
+                        Live status of core services
                     </p>
 
                     <div class="space-y-3 text-sm">
                         <div class="flex items-center justify-between">
-                            <span>Auth</span>
-                            <span id="auth-status" class="flex items-center gap-2">
+                            <span>Keycloak</span>
+                            <span id="keycloak-status" class="flex items-center gap-2">
                                 <span class="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></span>
                                 checking...
                             </span>
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <span>Measurement</span>
+                            <span>Measurement API</span>
                             <span id="measurement-status" class="flex items-center gap-2">
                                 <span class="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></span>
                                 checking...
@@ -75,7 +88,7 @@
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <span>Health</span>
+                            <span>Platform Health</span>
                             <span id="health-status" class="flex items-center gap-2">
                                 <span class="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></span>
                                 checking...
@@ -92,9 +105,23 @@
     </div>
 
     <script>
-        async function checkStatus(url, elementId) {
+        function setStatus(elementId, isUp) {
             const el = document.getElementById(elementId);
 
+            if (isUp) {
+                el.innerHTML = `
+                    <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                    UP
+                `;
+            } else {
+                el.innerHTML = `
+                    <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                    DOWN
+                `;
+            }
+        }
+
+        async function checkHealthJson(url, elementId) {
             try {
                 const res = await fetch(url, {
                     method: 'GET',
@@ -109,30 +136,35 @@
                 }
 
                 const data = await res.json();
-
-                if (data.status === "UP") {
-                    el.innerHTML = `
-                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
-                        UP
-                    `;
-                } else {
-                    el.innerHTML = `
-                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
-                        DOWN
-                    `;
-                }
+                setStatus(elementId, data.status === "UP");
             } catch (e) {
-                el.innerHTML = `
-                    <span class="w-3 h-3 rounded-full bg-red-500"></span>
-                    DOWN
-                `;
+                setStatus(elementId, false);
+            }
+        }
+
+        async function checkHttpReachability(url, elementId) {
+            try {
+                const res = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    cache: 'no-store'
+                });
+
+                setStatus(elementId, res.ok);
+            } catch (e) {
+                setStatus(elementId, false);
             }
         }
 
         function refreshStatus() {
-            checkStatus('/api/auth/ready', 'auth-status');
-            checkStatus('/api/v1/measurements/live', 'measurement-status');
-            checkStatus('/api/health/live', 'health-status');
+            checkHttpReachability(
+                'https://auth.roth-it-solutions.de/realms/healthhub/.well-known/openid-configuration',
+                'keycloak-status'
+            );
+            checkHealthJson('/api/v1/measurements/live', 'measurement-status');
+            checkHealthJson('/api/health/live', 'health-status');
         }
 
         refreshStatus();
