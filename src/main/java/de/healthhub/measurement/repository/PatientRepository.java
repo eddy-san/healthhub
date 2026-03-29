@@ -31,7 +31,6 @@ public class PatientRepository {
         List<Patient> result = em.createQuery(
                         "select distinct p from Patient p " +
                                 "join fetch p.user " +
-                                "left join fetch p.user.roles " +
                                 "where p.patientNumber = :patientNumber",
                         Patient.class)
                 .setParameter("patientNumber", patientNumber)
@@ -42,22 +41,10 @@ public class PatientRepository {
 
     public Optional<Patient> findByUserId(Long userId) {
         List<Patient> result = em.createQuery(
-                        "select p from Patient p where p.user.id = :userId",
+                        "select p from Patient p " +
+                                "where p.user.id = :userId",
                         Patient.class)
                 .setParameter("userId", userId)
-                .getResultList();
-
-        return result.stream().findFirst();
-    }
-
-    public Optional<Patient> findByUsername(String username) {
-        List<Patient> result = em.createQuery(
-                        "select distinct p from Patient p " +
-                                "join fetch p.user " +
-                                "left join fetch p.user.roles " +
-                                "where p.user.username = :username",
-                        Patient.class)
-                .setParameter("username", username)
                 .getResultList();
 
         return result.stream().findFirst();

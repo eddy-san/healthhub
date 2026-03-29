@@ -27,23 +27,13 @@ public class UserRepository {
         return Optional.ofNullable(em.find(User.class, id));
     }
 
-    public Optional<User> findByUsername(String username) {
+    public Optional<User> findByKeycloakSubject(String subject) {
         List<User> result = em.createQuery(
-                        "select distinct u from User u left join fetch u.roles where u.username = :username",
+                        "select u from User u where u.keycloakSubject = :subject",
                         User.class)
-                .setParameter("username", username)
+                .setParameter("subject", subject)
                 .getResultList();
 
         return result.stream().findFirst();
-    }
-
-    public boolean existsByUsername(String username) {
-        Long count = em.createQuery(
-                        "select count(u) from User u where u.username = :username",
-                        Long.class)
-                .setParameter("username", username)
-                .getSingleResult();
-
-        return count > 0;
     }
 }

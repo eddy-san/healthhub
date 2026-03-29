@@ -15,13 +15,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(name = "keycloak_subject", nullable = false, unique = true, length = 100)
+    private String keycloakSubject;
+
+    @Column(unique = true, length = 100)
     private String username;
 
-    @Column(name = "password_hash", nullable = false, length = 512)
-    private String passwordHash;
-
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(unique = true, length = 255)
     private String email;
 
     @Column(nullable = false)
@@ -38,29 +38,40 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-
-    // -------------------
-    // Getter
-    // -------------------
-
     public Long getId() {
         return id;
+    }
+
+    public String getKeycloakSubject() {
+        return keycloakSubject;
+    }
+
+    public void setKeycloakSubject(String keycloakSubject) {
+        this.keycloakSubject = keycloakSubject;
     }
 
     public String getUsername() {
         return username;
     }
 
-    public String getPasswordHash() {
-        return passwordHash;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
         return email;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -71,32 +82,6 @@ public class User {
         return roles;
     }
 
-
-    // -------------------
-    // Setter
-    // -------------------
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-
-    // -------------------
-    // Role helpers
-    // -------------------
-
     public void addRole(Role role) {
         this.roles.add(role);
     }
@@ -106,14 +91,8 @@ public class User {
     }
 
     public boolean hasRole(RoleName roleName) {
-        return roles.stream()
-                .anyMatch(r -> r.getRoleName() == roleName);
+        return roles.stream().anyMatch(r -> r.getRoleName() == roleName);
     }
-
-
-    // -------------------
-    // equals / hashCode
-    // -------------------
 
     @Override
     public boolean equals(Object o) {
