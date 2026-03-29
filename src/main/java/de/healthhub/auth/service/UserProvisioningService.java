@@ -33,7 +33,7 @@ public class UserProvisioningService {
         if (username == null || username.isBlank()) {
             username = subject;
         }
-        
+
         String email = extractEmail(request);
 
         return getOrCreateExternalUser(subject, username, email);
