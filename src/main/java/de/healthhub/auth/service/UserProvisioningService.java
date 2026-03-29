@@ -31,6 +31,15 @@ public class UserProvisioningService {
         String username = extractUsername(request, principal);
         String email = extractEmail(request);
 
+        return getOrCreateExternalUser(subject, username, email);
+    }
+
+    @Transactional
+    public User getOrCreateExternalUser(String subject, String username, String email) {
+        if (subject == null || subject.isBlank()) {
+            throw new IllegalStateException("Subject is required");
+        }
+
         System.out.println("HealthHub provisioning subject=" + subject);
         System.out.println("HealthHub provisioning username=" + username);
         System.out.println("HealthHub provisioning email=" + email);
