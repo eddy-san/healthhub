@@ -1,6 +1,5 @@
 package de.healthhub.bootstrap;
 
-import de.healthhub.auth.api.AuthResource;
 import de.healthhub.health.api.HealthResource;
 import de.healthhub.measurement.api.MeasurementResource;
 import jakarta.ws.rs.ApplicationPath;
@@ -17,7 +16,6 @@ public class HealthHubApplication extends Application {
         Set<Class<?>> classes = new HashSet<>();
 
         classes.add(HealthResource.class);
-        classes.add(AuthResource.class);
         classes.add(MeasurementResource.class);
 
         return classes;
