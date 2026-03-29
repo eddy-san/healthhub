@@ -1,10 +1,8 @@
 package de.healthhub.auth.model;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -18,13 +16,13 @@ public class User {
     @Column(name = "keycloak_subject", nullable = false, unique = true, length = 100)
     private String keycloakSubject;
 
-    @Column(unique = true, length = 100)
+    @Column(name = "username", unique = true, length = 100)
     private String username;
 
-    @Column(unique = true, length = 255)
+    @Column(name = "email", unique = true, length = 255)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
@@ -55,7 +53,7 @@ public class User {
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        this.username = emptyToNull(username);
     }
 
     public String getEmail() {
@@ -63,7 +61,7 @@ public class User {
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.email = emptyToNull(email);
     }
 
     public boolean isEnabled() {
@@ -82,27 +80,15 @@ public class User {
         return roles;
     }
 
-    public void addRole(Role role) {
-        this.roles.add(role);
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
-    public void removeRole(Role role) {
-        this.roles.remove(role);
-    }
-
-    public boolean hasRole(RoleName roleName) {
-        return roles.stream().anyMatch(r -> r.getRoleName() == roleName);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User user)) return false;
-        return Objects.equals(id, user.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    private String emptyToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

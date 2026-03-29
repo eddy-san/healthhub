@@ -1,7 +1,7 @@
 package de.healthhub.admin.web;
 
 import de.healthhub.auth.model.User;
-import de.healthhub.auth.service.OidcWebIdentityService;
+import de.healthhub.auth.service.UserProvisioningService;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -14,7 +14,7 @@ import jakarta.faces.context.FacesContext;
 public class AdminDashboardBean {
 
     @Inject
-    OidcWebIdentityService oidcWebIdentityService;
+    private UserProvisioningService userProvisioningService;
 
     private User currentUser;
 
@@ -24,7 +24,10 @@ public class AdminDashboardBean {
                 .getExternalContext()
                 .getRequest();
 
-        currentUser = oidcWebIdentityService.getOrCreateFromRequest(request);
+        currentUser = userProvisioningService.getOrCreateFromRequest(request);
+
+        System.out.println("HealthHub admin dashboard currentUser=" +
+                (currentUser != null ? currentUser.getUsername() : "null"));
     }
 
     public User getCurrentUser() {

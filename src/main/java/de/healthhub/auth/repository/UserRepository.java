@@ -29,9 +29,19 @@ public class UserRepository {
 
     public Optional<User> findByKeycloakSubject(String subject) {
         List<User> result = em.createQuery(
-                        "select distinct u from User u left join fetch u.roles where u.keycloakSubject = :subject",
+                        "select u from User u where u.keycloakSubject = :subject",
                         User.class)
                 .setParameter("subject", subject)
+                .getResultList();
+
+        return result.stream().findFirst();
+    }
+
+    public Optional<User> findByUsername(String username) {
+        List<User> result = em.createQuery(
+                        "select u from User u where u.username = :username",
+                        User.class)
+                .setParameter("username", username)
                 .getResultList();
 
         return result.stream().findFirst();
