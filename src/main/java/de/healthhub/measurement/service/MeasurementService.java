@@ -8,6 +8,8 @@ import de.healthhub.measurement.model.Patient;
 import de.healthhub.measurement.repository.PatientRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.SecurityContext;
 
 @ApplicationScoped
 public class MeasurementService {
@@ -18,8 +20,8 @@ public class MeasurementService {
     @Inject
     private PatientRepository patientRepository;
 
-    public MeasurementMeResponse getCurrentPatientView() {
-        User user = userProvisioningService.getOrCreateUserFromToken();
+    public MeasurementMeResponse getCurrentPatientView(SecurityContext securityContext, HttpServletRequest httpRequest) {
+        User user = userProvisioningService.getOrCreateUser(securityContext, httpRequest);
 
         if (!user.isEnabled()) {
             throw new IllegalStateException("User disabled");
@@ -36,8 +38,11 @@ public class MeasurementService {
         );
     }
 
-    public void createMeasurement(MeasurementCreateRequest request) {
-        User user = userProvisioningService.getOrCreateUserFromToken();
+    public void createMeasurement(SecurityContext securityContext,
+                                  HttpServletRequest httpRequest,
+                                  MeasurementCreateRequest request) {
+
+        User user = userProvisioningService.getOrCreateUser(securityContext, httpRequest);
 
         if (!user.isEnabled()) {
             throw new IllegalStateException("User disabled");

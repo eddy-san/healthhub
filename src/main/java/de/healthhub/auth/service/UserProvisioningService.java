@@ -4,8 +4,11 @@ import de.healthhub.auth.model.User;
 import de.healthhub.auth.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
-import org.eclipse.microprofile.jwt.JsonWebToken;
+import jakarta.ws.rs.core.SecurityContext;
+
+import java.security.Principal;
 
 @ApplicationScoped
 public class UserProvisioningService {
@@ -13,39 +16,26 @@ public class UserProvisioningService {
     @Inject
     UserRepository userRepository;
 
-    @Inject
-    JsonWebToken jwt;
-
     @Transactional
-    public User getOrCreateUserFromToken() {
-        String subject = jwt.getSubject();
-        String username = jwt.getClaim("preferred_username");
-        String email = jwt.getClaim("email");
-
-        if (subject == null || subject.isBlank()) {
-            throw new IllegalStateException("JWT subject is missing");
-        }
+    public User getOrCreateUser(SecurityContext securityContext, HttpServletRequest request) {
+        String subject = extractSubject(securityContext, request);
 
         User user = userRepository.findByKeycloakSubject(subject).orElse(null);
 
         if (user == null) {
             user = new User();
             user.setKeycloakSubject(subject);
-            user.setUsername(username);
-            user.setEmail(email);
+            user.setUsername(extractUsername(securityContext, request));
+            user.setEmail(null);
             user.setEnabled(true);
             return userRepository.save(user);
         }
 
+        String username = extractUsername(securityContext, request);
         boolean changed = false;
 
         if (username != null && !username.equals(user.getUsername())) {
             user.setUsername(username);
-            changed = true;
-        }
-
-        if (email != null && !email.equals(user.getEmail())) {
-            user.setEmail(email);
             changed = true;
         }
 
@@ -54,5 +44,27 @@ public class UserProvisioningService {
         }
 
         return user;
+    }
+
+    public String extractSubject(SecurityContext securityContext, HttpServletRequest request) {
+        if (securityContext != null) {
+            Principal principal = securityContext.getUserPrincipal();
+            if (principal != null && principal.getName() != null && !principal.getName().isBlank()) {
+                return principal.getName();
+            }
+        }
+
+        if (request != null) {
+            Principal principal = request.getUserPrincipal();
+            if (principal != null && principal.getName() != null && !principal.getName().isBlank()) {
+                return principal.getName();
+            }
+        }
+
+        throw new IllegalStateException("No authenticated user");
+    }
+
+    public String extractUsername(SecurityContext securityContext, HttpServletRequest request) {
+        return extractSubject(securityContext, request);
     }
 }
